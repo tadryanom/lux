@@ -1,5 +1,5 @@
 
-	gccopts = -m32 -nostdlib -nostartfiles -nodefaultlibs -fomit-frame-pointer -mno-red-zone
+	gccopts = -m32 -nostdlib -nostartfiles -nodefaultlibs -fomit-frame-pointer -O2
 
 all:
 	if [ ! -d "out" ]; then mkdir out; fi
@@ -10,6 +10,7 @@ all:
 	fasm kernel/asm/io.asm out/kernel/io.o
 	fasm kernel/asm/state.asm out/kernel/state.o
 	fasm kernel/asm/cpu.asm out/kernel/cpu.o
+	fasm kernel/asm/sse2.asm out/kernel/sse2.o
 
 	gcc $(gccopts) -Ikernel/include -c kernel/kmain.c -o out/kernel/kmain.o
 	gcc $(gccopts) -Ikernel/include -c kernel/misc/string.c -o out/kernel/string.o
@@ -18,6 +19,7 @@ all:
 	gcc $(gccopts) -Ikernel/include -c kernel/mm/mm.c -o out/kernel/mm.o
 	gcc $(gccopts) -Ikernel/include -c kernel/mm/pmm.c -o out/kernel/pmm.o
 	gcc $(gccopts) -Ikernel/include -c kernel/mm/vmm.c -o out/kernel/vmm.o
+	gcc $(gccopts) -Ikernel/include -c kernel/mm/heap.c -o out/kernel/heap.o
 	gcc $(gccopts) -Ikernel/include -c kernel/gdi/screen.c -o out/kernel/screen.o
 
 	gcc $(gccopts) -T kernel/link.ld out/kernel/*.o -o iso/boot/kernel.sys

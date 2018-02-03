@@ -33,6 +33,12 @@ main:
 	mov ax, 0x0003
 	int 0x10
 
+	; check for SSE2
+	mov eax, 1
+	cpuid
+	test edx, 1 shl 26
+	jz no_sse
+
 	push es					; some VESA BIOSes destroy ES, or so I read
 	mov dword[vbe_info_block], "VBE2"
 	mov ax, 0x4F00				; get VBE BIOS info
@@ -283,6 +289,14 @@ vbe_set_mode:
 .segment			dw 0
 .offset				dw 0
 .mode				dw 0
+
+no_sse:
+	mov si, .msg
+	call print
+	cli
+	hlt
+
+.msg				db "Boot error: CPU doesn't support SSE2.", 0
 
 ; default width/height when EDID is unavailable or unusable
 DEFAULT_WIDTH			= 800

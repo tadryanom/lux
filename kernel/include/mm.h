@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <types.h>
 #include <boot.h>
 
 // Better have these constant, in case I ever think of doing x86_64
@@ -18,17 +19,21 @@
 #define PAGE_USER			0x04
 #define PAGE_UNCACHEABLE		0x10
 
-#define KERNEL_HEAP			0xE0000000
-#define FRAMEBUFFER			0xF0000000
+#define KERNEL_HEAP			0xD0000000
+#define KERNEL_HEAP_SIZE		0x4000000	// 64 MB
+#define USER_HEAP			KERNEL_HEAP + KERNEL_HEAP_SIZE
+#define HW_FRAMEBUFFER			0xF0000000
+#define SW_FRAMEBUFFER			0xF4000000
+#define MMIO_BUFFER			0xF8000000	// PCI MMIO devices are mapped here
 
 extern uint64_t total_memory, usable_memory;
 extern uint8_t *pmm_bitmap;
 
 // Generic Functions
-void *malloc(size_t);
-void *calloc(size_t, size_t);
-void *realloc(void *, size_t);
-void free(void *);
+void *kmalloc(size_t);
+void *kcalloc(size_t, size_t);
+void *krealloc(void *, size_t);
+void kfree(void *);
 
 void mm_init(multiboot_info_t *);
 
@@ -47,7 +52,8 @@ void vmm_map(size_t, size_t, size_t, uint8_t);
 void vmm_unmap(size_t, size_t);
 size_t vmm_find_range(size_t, size_t);
 size_t vmm_alloc(size_t, size_t, uint8_t);
-size_t vmm_free(size_t, size_t);
+void vmm_free(size_t, size_t);
 size_t vmm_request_map(size_t, size_t, uint8_t);
+
 
 

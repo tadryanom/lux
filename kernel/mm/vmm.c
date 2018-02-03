@@ -7,6 +7,7 @@
 #include <mm.h>
 #include <kprintf.h>
 #include <cpu.h>
+#include <string.h>
 
 size_t *page_directory, *page_tables;
 
@@ -18,7 +19,7 @@ void vmm_init()
 {
 	size_t tmp_ptr;
 
-	tmp_ptr = (size_t)(pmm_bitmap + PMM_BITMAP_SIZE + (PAGE_SIZE - 1)) & 0xFFFFF000;
+	tmp_ptr = (size_t)(pmm_bitmap + PMM_BITMAP_SIZE + (PAGE_SIZE - 1)) & (~(PAGE_SIZE-1));
 	page_directory = (size_t*)tmp_ptr;
 
 	tmp_ptr += PAGE_SIZE;
@@ -53,7 +54,7 @@ void vmm_init()
 	write_cr3((uint32_t)page_directory);
 	uint32_t cr0 = read_cr0();
 	cr0 |= 0x80000000;
-	cr0 &= ~0x60000000;
+	cr0 &= ~0x60000000;		// caching
 	write_cr0(cr0);
 }
 
@@ -111,8 +112,76 @@ size_t vmm_find_range(size_t start, size_t count)
 {
 	if(!count)
 		return NULL;
+
+	size_t current_return = start;
+	size_t free_count = 0;
+
+	while(free_count < count)
+	{
+		if(!vmm_get_page(current_return + (free_count << PAGE_SIZE_SHIFT)) & PAGE_PRESENT)
+			free_count++;
+
+		else
+		{
+			current_return += PAGE_SIZE;
+
+			if(current_return >= (~0) - PAGE_SIZE - (count << PAGE_SIZE_SHIFT))
+				return NULL;
+
+			free_count = 0;
+		}
+	}
+
+	return current_return;
 }
 
+// vmm_alloc(): Allocates memory
+// Param:	size_t start - start of virtual base
+// Param:	size_t count - count of pages
+// Param:	uint8_t flags - page flags
+// Return:	size_t - Pointer to allocated memory
+
+size_t vmm_alloc(size_t start, size_t count, uint8_t flags)
+{
+	if(!count)
+		return NULL;
+
+	// allocate virtual memory
+	size_t virtual = vmm_find_range(start, count);
+	if(!virtual)
+		return NULL;
+
+	// and physical memory
+	size_t physical = pmm_alloc(count);
+	if(!physical)
+		return NULL;
+
+	vmm_map(virtual, physical, count, flags);
+
+	// zero-initialize
+	memset((void*)virtual, 0, count << PAGE_SIZE_SHIFT);
+	return virtual;
+}
+
+// vmm_free(): Frees memory
+// Param:	size_t ptr - pointer to memory
+// Param:	size_t count - count of pages
+// Return:	Nothing
+
+void vmm_free(size_t ptr, size_t count)
+{
+	if(!count)
+		return;
+
+	size_t physical = vmm_get_page(ptr);
+	if(!physical & PAGE_PRESENT)		// page not present?
+		return;
+
+	physical &= (~(PAGE_SIZE-1));
+
+	pmm_mark_free(physical, count);
+	vmm_unmap(ptr, count);	
+}
 
 
 

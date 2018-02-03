@@ -87,8 +87,22 @@ use32
 	mov gs, ax
 	mov esp, stack_top
 
-	push 0x00000002		; reset EFLAGS
+	; reset EFLAGS
+	push 0x00000002
 	popfd
+
+	; enable SSE
+	mov eax, 0x600
+	mov cr4, eax
+
+	mov eax, cr0
+	and eax, 0xFFFFFFFB
+	or eax, 2
+	mov cr0, eax
+
+	; initialize the FPU
+	finit
+	fwait
 
 	push ebx		; VBE mode info block
 
@@ -200,7 +214,7 @@ end_vbe_driver:
 
 ; Boot-time Font
 public bootfont
-bootfont:			file "kernel/asm/cp437.bin"
+bootfont:			file "kernel/asm/alotware.bin"
 
 section '.bss' align 16
 

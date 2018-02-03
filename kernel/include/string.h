@@ -18,5 +18,6 @@ char *hex32_to_string(uint32_t, char *);
 char *hex64_to_string(uint64_t, char *);
 
 void *memset(void *, int, size_t);
-
+extern void *memcpy(void *, const void *, size_t);	// beautiful SSE2 memcpy
+extern void sse2_copy(void *, void *, size_t);		// copies blocks, each block is 128 bytes
 
