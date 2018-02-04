@@ -26,6 +26,8 @@
 #define SW_FRAMEBUFFER			0xF4000000
 #define MMIO_BUFFER			0xF8000000	// PCI MMIO devices are mapped here
 
+#define HEAP_ALIGNMENT			16		// SSE-aligned
+
 extern uint64_t total_memory, usable_memory;
 extern uint8_t *pmm_bitmap;
 
