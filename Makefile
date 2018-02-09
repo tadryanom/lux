@@ -16,6 +16,8 @@ all:
 	$(CC) $(CFLAGS) -Ikernel/include -c kernel/kmain.c -o out/kernel/kmain.o
 	$(CC) $(CFLAGS) -Ikernel/include -c kernel/misc/string.c -o out/kernel/string.o
 	$(CC) $(CFLAGS) -Ikernel/include -c kernel/misc/kprintf.c -o out/kernel/kprintf.o
+	$(CC) $(CFLAGS) -Ikernel/include -c kernel/misc/idt.c -o out/kernel/idt.o
+	$(CC) $(CFLAGS) -Ikernel/include -c kernel/misc/panic.c -o out/kernel/panic.o
 	$(CC) $(CFLAGS) -Ikernel/include -c kernel/firmware/pit.c -o out/kernel/pit.o
 	$(CC) $(CFLAGS) -Ikernel/include -c kernel/mm/mm.c -o out/kernel/mm.o
 	$(CC) $(CFLAGS) -Ikernel/include -c kernel/mm/pmm.c -o out/kernel/pmm.o
@@ -33,5 +35,6 @@ clean:
 	if [ -d "out/kernel" ]; then rm out/kernel/*; rmdir out/kernel; fi
 	if [ -d "out" ]; then rmdir out; fi
 	rm iso/boot/kernel.sys
+
 
 

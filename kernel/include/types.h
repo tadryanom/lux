@@ -43,6 +43,6 @@ typedef struct registers_t
 	uint32_t cr2;
 	uint32_t cr3;
 	uint32_t cr4;
-} registers_t;
+}__attribute__((packed)) registers_t;
 
 

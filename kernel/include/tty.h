@@ -54,6 +54,8 @@ void screen_drawstr(char *, uint16_t, uint16_t, uint32_t, uint32_t);
 void screen_drawstr_transparent(char *, uint16_t, uint16_t, uint32_t);
 void screen_fill_rect(uint16_t, uint16_t, uint16_t, uint16_t, uint32_t);
 
+void tty_lock(size_t);
+void tty_unlock(size_t);
 void tty_switch(size_t);
 void tty_scroll(size_t);
 void tty_redraw(size_t);

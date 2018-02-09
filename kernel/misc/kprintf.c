@@ -10,9 +10,11 @@
 #include <io.h>
 #include <time.h>
 #include <va_list.h>	// for formatting
+#include <tty.h>
 
 uint16_t com1_base;
 uint8_t com1_last_byte = 0;
+char debug_mode = 0;
 
 void com1_wait();
 void com1_send_byte(char);
@@ -68,6 +70,9 @@ void com1_wait()
 
 void com1_send_byte(char byte)
 {
+	if(debug_mode != 0)
+		tty_put(byte, 0);
+
 	com1_last_byte = byte;
 	if(!com1_base) return;
 
@@ -91,7 +96,7 @@ void com1_send_byte(char byte)
 
 void com1_send(char *string)
 {
-	if(!com1_base) return;
+	//if(!com1_base) return;
 
 	while(string[0] != 0)
 	{
@@ -106,7 +111,10 @@ void com1_send(char *string)
 
 void kprintf(char *string, ...)
 {
-	if(!com1_base) return;
+	if(debug_mode != 0)
+		tty_lock(0);	// tty0 is the kernel's log
+
+	//if(!com1_base) return;
 
 	char conv_str[32];
 	uint32_t val32;
@@ -202,40 +210,10 @@ void kprintf(char *string, ...)
 	}
 
 	va_end(params);
+
+	if(debug_mode != 0)
+		tty_unlock(0);
 }
-
-// panic: Makes a panic message
-// Param:	char *string - string to display
-// Return:	Nothing
-
-void panic(char *string)
-{
-	registers_t registers;
-	save_registers(&registers);
-
-	kprintf("KERNEL PANIC: %s\n", string);
-	dump_registers(&registers);
-
-	while(1)
-	{
-		asm __volatile__ ("cli\nhlt");
-	}
-}
-
-// dump_registers: Dumps registers
-// Param:	registers_t *registers - pointer to register structure
-// Return:	Nothing
-
-void dump_registers(registers_t *registers)
-{
-	kprintf(" --- BEGINNING REGISTER DUMP AT TIME OF ERROR ---\n");
-	kprintf("  eax: %xd  ebx: %xd  ecx: %xd  edx: %xd\n", registers->eax, registers->ebx, registers->ecx, registers->edx);
-	kprintf("  esi: %xd  edi: %xd  esp: %xd  ebp: %xd\n", registers->esi, registers->edi, registers->esp, registers->ebp);
-	kprintf("  eflags: %xd  cs: %xw  ss: %xw  ds: %xw  es: %xw\n", registers->eflags, registers->cs, registers->ss, registers->ds, registers->es);
-	kprintf("  cr0: %xd  cr2: %xd  cr3: %xd  cr4: %xd\n", registers->cr0, registers->cr2, registers->cr3, registers->cr4);
-	kprintf(" --- END OF REGISTER DUMP ---\n");
-}
-
 
 
 

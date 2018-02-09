@@ -64,6 +64,7 @@ void screen_init(vbe_mode_t *vbe_info)
 		i++;
 	}
 
+	debug_mode = 1;
 	tty_switch(0);
 	screen_unlock();
 }
@@ -327,6 +328,26 @@ void screen_fill_rect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, u
  *                                     *
  * *********************************** */
 
+// tty_lock(): Locks a tty
+// Param:	size_t tty - TTY index
+// Return:	Nothing
+
+inline void tty_lock(size_t tty)
+{
+	ttys[tty].lock = 1;
+}
+
+// tty_unlock(): Unlocks a tty
+// Param:	size_t tty - TTY index
+// Return:	Nothing
+
+inline void tty_unlock(size_t tty)
+{
+	ttys[tty].lock = 0;
+	if(current_tty == tty)
+		tty_redraw(tty);
+}
+
 // tty_switch(): Sets the current tty
 // Param:	size_t tty - TTY index
 // Return:	Nothing
@@ -334,11 +355,15 @@ void screen_fill_rect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, u
 void tty_switch(size_t tty)
 {
 	if(tty >= TTY_COUNT)
+	{
+		kprintf("tty: attempted to switch to non-existant tty %d, ignoring...\n", tty);
 		return;
+	}
 	else
 	{
 		kprintf("tty: switched to tty %d\n", tty);
 		current_tty = tty;
+		ttys[tty].lock = 0;
 		tty_redraw(tty);
 	}
 }
@@ -379,11 +404,11 @@ void tty_redraw(size_t tty)
 	size_t tty_size = width_chars * height_chars;
 	while(i < tty_size)
 	{
-		if(ttys[tty].buffer[i] == 0)
+		/*if(ttys[tty].buffer[i] == 0)
 		{
 			i++;
 			continue;
-		}
+		}*/
 
 		if(ttys[tty].buffer[i] == 13)
 		{
@@ -414,7 +439,7 @@ void tty_redraw(size_t tty)
 
 	// draw the cursor if we have to
 	if(ttys[tty].cursor_visible != 0)
-		screen_fill_rect(x * 8, y * 16, 8, 16, ttys[tty].fg);
+		screen_fill_rect(ttys[tty].x_pos * 8, ttys[tty].y_pos * 16, 8, 16, ttys[tty].fg);
 
 	screen_unlock();
 	screen_redraw();
@@ -438,7 +463,7 @@ void tty_put(char character, size_t tty)
 
 	char *buffer = (char*)ttys[tty].buffer + (ttys[tty].y_pos * width_chars) + ttys[tty].x_pos;
 
-	buffer[0] = character;
+	//buffer[0] = character;
 
 	if(character == 13)
 	{
@@ -456,6 +481,7 @@ void tty_put(char character, size_t tty)
 	}
 	else
 	{
+		buffer[0] = character;
 		ttys[tty].x_pos++;
 
 		if(ttys[tty].x_pos >= width_chars)

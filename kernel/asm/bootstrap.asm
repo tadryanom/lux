@@ -80,6 +80,9 @@ use32
 	mov gs, ax
 	mov esp, stack_top
 
+	; load IDT
+	lidt [idtr]
+
 	; reset EFLAGS
 	push 0x00000002
 	popfd
@@ -118,6 +121,7 @@ section '.rodata' align 16
 ; gdt:
 ; Global Descriptor Table
 align 16
+public gdt
 gdt:
 	; 0x00 -- null descriptor
 	dq 0
@@ -190,6 +194,7 @@ gdtr:
 ; idt:
 ; Interrupt Descriptor Table
 align 16
+public idt
 idt:
 	times 256 dw 0, 8, 0x8E00, 0
 end_of_idt:

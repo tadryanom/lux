@@ -12,6 +12,8 @@ section '.text'
 
 public save_registers
 save_registers:
+	pusha
+
 	mov [tmp_struct.eax], eax
 	mov [tmp_struct.ebx], ebx
 	mov [tmp_struct.ecx], ecx
@@ -47,12 +49,15 @@ save_registers:
 	mov [tmp_struct.cr4], eax
 
 	; copy to the destination
-	mov edi, [esp+4]		; register_t *
+	mov edi, [esp+32+4]		; register_t *
 	mov esi, tmp_struct
 	mov ecx, end_tmp_struct-tmp_struct
 	rep movsb
 
+	popa
 	ret
+
+section '.data'
 
 tmp_struct:
 	.eax			dd 0

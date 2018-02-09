@@ -21,9 +21,7 @@ void kmain(uint32_t multiboot_magic, multiboot_info_t *multiboot_info, vbe_mode_
 
 	mm_init(multiboot_info);
 	screen_init(vbe_mode);
-
-	tty_writestr("\nWelcome to lux.\n", 0);
-	tty_writestr("For now, there is nothing to see, but here's a working tty.", 0);
+	install_exceptions();
 	while(1);
 }
 
