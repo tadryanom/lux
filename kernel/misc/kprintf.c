@@ -61,7 +61,7 @@ void kprint_init()
 
 void com1_wait()
 {
-	while(!inb(com1_base+5) & 0x20);
+	while((inb(com1_base+5) & 0x20) == 0);
 }
 
 // com1_send_byte: Sends a byte to the serial port

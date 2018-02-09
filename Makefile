@@ -24,6 +24,7 @@ all:
 	$(CC) $(CFLAGS) -Ikernel/include -c kernel/mm/vmm.c -o out/kernel/vmm.o
 	$(CC) $(CFLAGS) -Ikernel/include -c kernel/mm/heap.c -o out/kernel/heap.o
 	$(CC) $(CFLAGS) -Ikernel/include -c kernel/io/tty.c -o out/kernel/tty.o
+	$(CC) $(CFLAGS) -Ikernel/include -c kernel/acpi/tables.c -o out/kernel/tables.o
 
 	ld -melf_i386 -nostdlib -nodefaultlibs -O2 -T kernel/link.ld out/kernel/*.o -o iso/boot/kernel.sys
 

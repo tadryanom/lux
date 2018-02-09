@@ -163,6 +163,39 @@ void *memset(void *dest, int value, size_t count)
 	return dest;
 }
 
+// memcmp: Compares memory
+// Param:	const void *ptr1 - memory
+// Param:	const void *ptr2 - memory
+// Param:	size_t num - count of bytes
+// Return:	int - result of comparison
+
+int memcmp(const void *ptr1, const void *ptr2, size_t num)
+{
+	if(!num)
+		return 0;
+
+	uint8_t *ptr1_c, *ptr2_c;
+
+	ptr1_c = (uint8_t*)ptr1;
+	ptr2_c = (uint8_t*)ptr2;
+
+	size_t i = 0;
+	while(i < num)
+	{
+		if(ptr1_c[i] == ptr2_c[i])
+			i++;
+
+		else
+		{
+			if(ptr1_c[i] > ptr2_c[i])
+				return 1;
+			else
+				return -1;
+		}
+	}
+
+	return 0;
+}
 
 
 

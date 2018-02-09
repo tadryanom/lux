@@ -183,5 +183,28 @@ void vmm_free(size_t ptr, size_t count)
 	vmm_unmap(ptr, count);	
 }
 
+// vmm_request_map(): Requests physical memory be mapped
+// Param:	size_t physical - physical address
+// Param:	size_t count - count of pages
+// Param:	uint8_t flags - page flags
+// Return:	size_t - virtual address
+
+size_t vmm_request_map(size_t physical, size_t count, uint8_t flags)
+{
+	if(!count)
+		return NULL;
+
+	// allocate virtual memory
+	count++;
+	size_t virtual = vmm_find_range(KERNEL_HEAP, count);
+	if(!virtual)
+		return NULL;
+
+	vmm_map(virtual, physical, count, flags);
+
+	return virtual + (physical & (PAGE_SIZE-1));
+}
+
+
 
 
