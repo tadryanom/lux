@@ -20,7 +20,7 @@ all:
 	gcc $(gccopts) -Ikernel/include -c kernel/mm/pmm.c -o out/kernel/pmm.o
 	gcc $(gccopts) -Ikernel/include -c kernel/mm/vmm.c -o out/kernel/vmm.o
 	gcc $(gccopts) -Ikernel/include -c kernel/mm/heap.c -o out/kernel/heap.o
-	gcc $(gccopts) -Ikernel/include -c kernel/gdi/screen.c -o out/kernel/screen.o
+	gcc $(gccopts) -Ikernel/include -c kernel/io/tty.c -o out/kernel/tty.o
 
 	gcc $(gccopts) -T kernel/link.ld out/kernel/*.o -o iso/boot/kernel.sys
 

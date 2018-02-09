@@ -214,7 +214,7 @@ end_vbe_driver:
 
 ; Boot-time Font
 public bootfont
-bootfont:			file "kernel/asm/alotware.bin"
+bootfont:			file "kernel/asm/cp437.bin"
 
 section '.bss' align 16
 

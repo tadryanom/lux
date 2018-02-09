@@ -9,7 +9,7 @@
 #include <time.h>
 #include <mm.h>
 #include <string.h>
-#include <screen.h>
+#include <tty.h>
 
 void kmain(uint32_t multiboot_magic, multiboot_info_t *multiboot_info, vbe_mode_t *vbe_mode)
 {
@@ -21,6 +21,9 @@ void kmain(uint32_t multiboot_magic, multiboot_info_t *multiboot_info, vbe_mode_
 
 	mm_init(multiboot_info);
 	screen_init(vbe_mode);
+
+	tty_write("\nWelcome to lux.\n", 0);
+	tty_write("For now, there is nothing to see, but here's a working tty.", 0);
 	while(1);
 }
 
