@@ -8,19 +8,12 @@ use32
 section '.multiboot'
 
 MULTIBOOT_MAGIC			= 0x1BADB002
-MULTIBOOT_FLAGS			= 0x00010003	; flat binary, page-align modules, E820 map
+MULTIBOOT_FLAGS			= 0x00000003	; page-align modules, E820 map
 MULTIBOOT_CHECKSUM		= -(MULTIBOOT_MAGIC + MULTIBOOT_FLAGS)
-MULTIBOOT_LOAD_ADDRESS		= 0x100000	; 1 MB
 
 multiboot_magic			dd MULTIBOOT_MAGIC
 multiboot_flags			dd MULTIBOOT_FLAGS
 multiboot_checksum		dd MULTIBOOT_CHECKSUM
-
-multiboot_header		dd multiboot_magic
-multiboot_load_address		dd MULTIBOOT_LOAD_ADDRESS
-multiboot_end_address		dd 0
-multiboot_bss			dd 0
-multiboot_entry			dd start
 
 saved_magic			dd 0
 saved_structure			dd 0

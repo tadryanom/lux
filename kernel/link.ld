@@ -1,5 +1,6 @@
-OUTPUT_FORMAT("binary")
+
 OUTPUT_ARCH("i386")
+ENTRY(start)
 SECTIONS
 {
 	. = 0x100000;
@@ -14,12 +15,14 @@ SECTIONS
 	}
 	.data : {
 		*(.data)
+		. = ALIGN(32);
+	}
+	.rodata : {
 		*(.rodata)
 		. = ALIGN(32);
 	}
-	__bss_start = .;
 	.bss : {
-		bss = .; _bss = .; __bss = .;
+		*(COMMON)
 		*(.bss);
 	}
 	kend = ., _kend = ., __kend = .;

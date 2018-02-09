@@ -58,7 +58,8 @@ void tty_switch(size_t);
 void tty_scroll(size_t);
 void tty_redraw(size_t);
 void tty_put(char, size_t);
-void tty_write(char *, size_t);
+void tty_write(char *, size_t, size_t);
+void tty_writestr(char *, size_t);
 
 
 

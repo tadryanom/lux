@@ -33,8 +33,8 @@ void screen_init(vbe_mode_t *vbe_info)
 	pitch = vbe_info->pitch;
 	framebuffer = vbe_info->framebuffer;
 
-	width_chars = (width / 8) - 2;
-	height_chars = (height / 16) - 2;
+	width_chars = (width / 8) - 1;
+	height_chars = (height / 16) - 1;
 
 	screen_size = height*pitch;
 	screen_size_dwords = screen_size / 4;
@@ -349,8 +349,15 @@ void tty_switch(size_t tty)
 
 void tty_scroll(size_t tty)
 {
-	kprintf("tty scroll\n");
-	while(1);
+	char *buffer = ttys[tty].buffer;
+	memmove(buffer, buffer+width_chars, (width_chars - 1) * height_chars);
+	memset(buffer + ((height_chars-1) * width_chars), 0, width_chars);
+
+	ttys[tty].x_pos = 0;
+	ttys[tty].y_pos = height_chars - 1;
+
+	if(current_tty == tty)
+		tty_redraw(tty);
 }
 
 // tty_redraw(): Redraws a terminal
@@ -468,12 +475,13 @@ void tty_put(char character, size_t tty)
 		tty_redraw(tty);
 }
 
-// tty_write(): Writes text to a terminal
-// Param:	char *string - text to write
+// tty_write(): Writes to a terminal
+// Param:	char *string - data to write
+// Param:	size_t size - size of data to write
 // Param:	size_t tty - terminal to write to
 // Return:	Nothing
 
-void tty_write(char *string, size_t tty)
+void tty_write(char *string, size_t size, size_t tty)
 {
 	if(tty >= TTY_COUNT)
 	{
@@ -485,7 +493,7 @@ void tty_write(char *string, size_t tty)
 		ttys[tty].lock = 1;		// for performance
 
 	size_t i = 0;
-	while(string[i] != 0)
+	while(i < size)
 	{
 		tty_put(string[i], tty);
 		i++;
@@ -496,6 +504,16 @@ void tty_write(char *string, size_t tty)
 		ttys[tty].lock = 0;
 		tty_redraw(tty);
 	}
+}
+
+// tty_writestr(): Writes an ASCIIZ string to a terminal
+// Param:	char *string - string
+// Param:	size_t tty - terminal to write to
+// Return:	Nothing
+
+void tty_writestr(char *string, size_t tty)
+{
+	tty_write(string, strlen(string), tty);
 }
 
 
