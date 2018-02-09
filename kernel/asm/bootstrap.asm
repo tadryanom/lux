@@ -22,7 +22,7 @@ section '.text'
 
 ; start:
 ; Start of kernel code
-
+public start
 start:
 	cli
 	cld

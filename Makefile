@@ -1,5 +1,6 @@
 
-	gccopts = -m32 -nostdlib -nostartfiles -nodefaultlibs -fomit-frame-pointer -O2
+	CC=clang
+	CFLAGS=-target i386-elf -fno-builtin -fomit-frame-pointer -nostdlib -nodefaultlibs -O2
 
 all:
 	if [ ! -d "out" ]; then mkdir out; fi
@@ -12,17 +13,17 @@ all:
 	fasm kernel/asm/cpu.asm out/kernel/cpu.o
 	fasm kernel/asm/sse2.asm out/kernel/sse2.o
 
-	gcc $(gccopts) -Ikernel/include -c kernel/kmain.c -o out/kernel/kmain.o
-	gcc $(gccopts) -Ikernel/include -c kernel/misc/string.c -o out/kernel/string.o
-	gcc $(gccopts) -Ikernel/include -c kernel/misc/kprintf.c -o out/kernel/kprintf.o
-	gcc $(gccopts) -Ikernel/include -c kernel/firmware/pit.c -o out/kernel/pit.o
-	gcc $(gccopts) -Ikernel/include -c kernel/mm/mm.c -o out/kernel/mm.o
-	gcc $(gccopts) -Ikernel/include -c kernel/mm/pmm.c -o out/kernel/pmm.o
-	gcc $(gccopts) -Ikernel/include -c kernel/mm/vmm.c -o out/kernel/vmm.o
-	gcc $(gccopts) -Ikernel/include -c kernel/mm/heap.c -o out/kernel/heap.o
-	gcc $(gccopts) -Ikernel/include -c kernel/io/tty.c -o out/kernel/tty.o
+	$(CC) $(CFLAGS) -Ikernel/include -c kernel/kmain.c -o out/kernel/kmain.o
+	$(CC) $(CFLAGS) -Ikernel/include -c kernel/misc/string.c -o out/kernel/string.o
+	$(CC) $(CFLAGS) -Ikernel/include -c kernel/misc/kprintf.c -o out/kernel/kprintf.o
+	$(CC) $(CFLAGS) -Ikernel/include -c kernel/firmware/pit.c -o out/kernel/pit.o
+	$(CC) $(CFLAGS) -Ikernel/include -c kernel/mm/mm.c -o out/kernel/mm.o
+	$(CC) $(CFLAGS) -Ikernel/include -c kernel/mm/pmm.c -o out/kernel/pmm.o
+	$(CC) $(CFLAGS) -Ikernel/include -c kernel/mm/vmm.c -o out/kernel/vmm.o
+	$(CC) $(CFLAGS) -Ikernel/include -c kernel/mm/heap.c -o out/kernel/heap.o
+	$(CC) $(CFLAGS) -Ikernel/include -c kernel/io/tty.c -o out/kernel/tty.o
 
-	gcc $(gccopts) -T kernel/link.ld out/kernel/*.o -o iso/boot/kernel.sys
+	ld -melf_i386 -nostdlib -nodefaultlibs -O2 -T kernel/link.ld out/kernel/*.o -o iso/boot/kernel.sys
 
 	grub-mkrescue -o lux.iso iso
 
@@ -32,3 +33,5 @@ clean:
 	if [ -d "out/kernel" ]; then rm out/kernel/*; rmdir out/kernel; fi
 	if [ -d "out" ]; then rmdir out; fi
 	rm iso/boot/kernel.sys
+
+
