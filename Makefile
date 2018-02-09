@@ -1,6 +1,6 @@
 
 	CC=clang
-	CFLAGS=-target i386-elf -fno-builtin -fomit-frame-pointer -nostdlib -nodefaultlibs -O2
+	CFLAGS=-target i386-elf -fno-builtin -ffreestanding -fomit-frame-pointer -nostdlib -nodefaultlibs -O2
 
 all:
 	if [ ! -d "out" ]; then mkdir out; fi
