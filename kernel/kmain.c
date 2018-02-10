@@ -11,6 +11,7 @@
 #include <string.h>
 #include <tty.h>
 #include <acpi.h>
+#include <apic.h>
 
 void kmain(uint32_t multiboot_magic, multiboot_info_t *multiboot_info, vbe_mode_t *vbe_mode)
 {
@@ -24,6 +25,7 @@ void kmain(uint32_t multiboot_magic, multiboot_info_t *multiboot_info, vbe_mode_
 	screen_init(vbe_mode);
 	install_exceptions();
 	acpi_init();
+	apic_init();
 
 	while(1);
 }
