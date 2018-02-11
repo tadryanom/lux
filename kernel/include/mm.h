@@ -46,6 +46,7 @@ size_t pmm_find_range(size_t);
 size_t pmm_alloc(size_t);
 
 // Virtual Memory Manager
+size_t *page_directory, *page_tables;
 void vmm_init();
 size_t vmm_get_page(size_t);
 void vmm_map(size_t, size_t, size_t, uint8_t);

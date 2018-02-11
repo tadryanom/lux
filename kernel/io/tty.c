@@ -9,6 +9,7 @@
 #include <kprintf.h>
 #include <tty.h>
 #include <string.h>
+#include <lock.h>
 
 uint16_t width, height, pitch;
 uint16_t width_chars, height_chars;
@@ -18,6 +19,8 @@ size_t back_buffer;
 tty_t *ttys;
 size_t current_tty;
 char lock_flag;
+
+lock_t tty_mutex = 0;
 
 // screen_init(): Initializes the screen
 // Param:	vbe_mode_t *vbe_mode - VESA mode information
@@ -461,6 +464,8 @@ void tty_put(char character, size_t tty)
 	if(!character)
 		return;
 
+	acquire_lock(&tty_mutex);
+
 	char *buffer = (char*)ttys[tty].buffer + (ttys[tty].y_pos * width_chars) + ttys[tty].x_pos;
 
 	//buffer[0] = character;
@@ -477,6 +482,7 @@ void tty_put(char character, size_t tty)
 		if(ttys[tty].y_pos >= height_chars)
 			tty_scroll(tty);
 
+		release_lock(&tty_mutex);
 		return;
 	}
 	else
@@ -492,6 +498,7 @@ void tty_put(char character, size_t tty)
 			if(ttys[tty].y_pos >= height_chars)
 			{
 				tty_scroll(tty);
+				release_lock(&tty_mutex);
 				return;
 			}
 		}
@@ -499,6 +506,8 @@ void tty_put(char character, size_t tty)
 
 	if(current_tty == tty)
 		tty_redraw(tty);
+
+	release_lock(&tty_mutex);
 }
 
 // tty_write(): Writes to a terminal

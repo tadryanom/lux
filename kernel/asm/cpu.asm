@@ -69,6 +69,27 @@ flush_tlb:
 .done:
 	ret
 
+; void acquire_lock(lock_t *)
+public acquire_lock
+acquire_lock:
+	mov eax, [esp+4]		; lock_t *
+
+.loop:
+	bt dword[eax], 0
+	jc .loop
+
+	lock bts dword[eax], 0
+	jc .loop
+
+	ret
+
+; void release_lock(lock_t *)
+public release_lock
+release_lock:
+	mov eax, [esp+4]
+	btr dword[eax], 0
+	ret
+
 ; For exceptions
 extrn exception_handler
 

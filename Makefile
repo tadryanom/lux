@@ -27,12 +27,14 @@ all:
 	$(CC) $(CFLAGS) -Ikernel/include -c kernel/acpi/tables.c -o out/kernel/tables.o
 	$(CC) $(CFLAGS) -Ikernel/include -c kernel/acpi/apic.c -o out/kernel/apic.o
 	$(CC) $(CFLAGS) -Ikernel/include -c kernel/acpi/ioapic.c -o out/kernel/ioapic.o
+	$(CC) $(CFLAGS) -Ikernel/include -c kernel/acpi/lapic.c -o out/kernel/lapic.o
+	$(CC) $(CFLAGS) -Ikernel/include -c kernel/acpi/smp.c -o out/kernel/smp.o
 
 	ld -melf_i386 -nostdlib -nodefaultlibs -O2 -T kernel/link.ld out/kernel/*.o -o iso/boot/kernel.sys
 
 	grub-mkrescue -o lux.iso iso
 
-	qemu-system-i386 -cdrom lux.iso -serial stdio -vga std
+	qemu-system-i386 -cdrom lux.iso -serial stdio -vga std -smp 2
 
 clean:
 	if [ -d "out/kernel" ]; then rm out/kernel/*; rmdir out/kernel; fi

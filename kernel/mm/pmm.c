@@ -8,11 +8,13 @@
 #include <boot.h>
 #include <kprintf.h>
 #include <string.h>
+#include <lock.h>
 
 uint8_t *pmm_bitmap;
 size_t total_pages, used_pages, reserved_pages;
 uint64_t total_memory, usable_memory;
 size_t highest_usable_address;
+lock_t pmm_mutex = 0;
 
 void pmm_add_range(e820_entry_t *);
 void pmm_mark_page_used(size_t);
@@ -260,11 +262,17 @@ size_t pmm_find_range(size_t count)
 
 size_t pmm_alloc(size_t count)
 {
+	acquire_lock(&pmm_mutex);
+
 	size_t memory = pmm_find_range(count);
 	if(!memory)
+	{
+		release_lock(&pmm_mutex);
 		return NULL;
+	}
 
 	pmm_mark_used(memory, count);
+	release_lock(&pmm_mutex);
 	return memory;
 }
 

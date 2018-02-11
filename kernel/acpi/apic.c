@@ -16,7 +16,7 @@ lapic_t *lapics;
 ioapic_t *ioapics;
 irq_override_t *overrides;
 
-int lapic_count, ioapic_count, override_count;
+size_t lapic_count, ioapic_count, override_count;
 
 // apic_init(): Initializes SMP and I/O APICs
 // Param:	Nothing
@@ -42,6 +42,12 @@ void apic_init()
 	}
 
 	apic_parse();
+	smp_init();
+
+	/*if(ioapic_count != 0)
+		ioapic_init();
+	else
+		pic_init();*/
 }
 
 // apic_parse(): Parses the APIC table data
@@ -52,6 +58,8 @@ void apic_parse()
 {
 	kprintf("apic: local APIC is at 0x%xd\n", madt->local_apic);
 	kprintf("apic: MADT flags = 0x%xd\n", madt->flags);
+
+	lapic_base = (void*)vmm_request_map(madt->local_apic, 2, PAGE_PRESENT | PAGE_RW | PAGE_UNCACHEABLE);
 
 	char *ptr = (char*)madt->records;
 	uint32_t bytes = 0;

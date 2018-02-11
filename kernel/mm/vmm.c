@@ -8,8 +8,10 @@
 #include <kprintf.h>
 #include <cpu.h>
 #include <string.h>
+#include <lock.h>
 
 size_t *page_directory, *page_tables;
+lock_t vmm_mutex = 0;
 
 // vmm_init(): Initializes paging and the virtual memory manager
 // Param:	Nothing
@@ -143,23 +145,35 @@ size_t vmm_find_range(size_t start, size_t count)
 
 size_t vmm_alloc(size_t start, size_t count, uint8_t flags)
 {
+	acquire_lock(&vmm_mutex);
+
 	if(!count)
+	{
+		release_lock(&vmm_mutex);
 		return NULL;
+	}
 
 	// allocate virtual memory
 	size_t virtual = vmm_find_range(start, count);
 	if(!virtual)
+	{
+		release_lock(&vmm_mutex);
 		return NULL;
+	}
 
 	// and physical memory
 	size_t physical = pmm_alloc(count);
 	if(!physical)
+	{
+		release_lock(&vmm_mutex);
 		return NULL;
+	}
 
 	vmm_map(virtual, physical, count, flags);
 
 	// zero-initialize
 	memset((void*)virtual, 0, count << PAGE_SIZE_SHIFT);
+	release_lock(&vmm_mutex);
 	return virtual;
 }
 
@@ -170,17 +184,25 @@ size_t vmm_alloc(size_t start, size_t count, uint8_t flags)
 
 void vmm_free(size_t ptr, size_t count)
 {
+	acquire_lock(&vmm_mutex);
 	if(!count)
+	{
+		release_lock(&vmm_mutex);
 		return;
+	}
 
 	size_t physical = vmm_get_page(ptr);
 	if(!physical & PAGE_PRESENT)		// page not present?
+	{
+		release_lock(&vmm_mutex);
 		return;
+	}
 
 	physical &= (~(PAGE_SIZE-1));
 
 	pmm_mark_free(physical, count);
 	vmm_unmap(ptr, count);	
+	release_lock(&vmm_mutex);
 }
 
 // vmm_request_map(): Requests physical memory be mapped
@@ -191,17 +213,25 @@ void vmm_free(size_t ptr, size_t count)
 
 size_t vmm_request_map(size_t physical, size_t count, uint8_t flags)
 {
+	acquire_lock(&vmm_mutex);
+
 	if(!count)
+	{
+		release_lock(&vmm_mutex);
 		return NULL;
+	}
 
 	// allocate virtual memory
 	count++;
 	size_t virtual = vmm_find_range(KERNEL_HEAP, count);
 	if(!virtual)
+	{
+		release_lock(&vmm_mutex);
 		return NULL;
+	}
 
 	vmm_map(virtual, physical, count, flags);
-
+	release_lock(&vmm_mutex);
 	return virtual + (physical & (PAGE_SIZE-1));
 }
 

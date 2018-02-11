@@ -11,10 +11,12 @@
 #include <time.h>
 #include <va_list.h>	// for formatting
 #include <tty.h>
+#include <lock.h>
 
 uint16_t com1_base;
 uint8_t com1_last_byte = 0;
 char debug_mode = 0;
+lock_t com1_mutex = 0;
 
 void com1_wait();
 void com1_send_byte(char);
@@ -70,11 +72,17 @@ void com1_wait()
 
 void com1_send_byte(char byte)
 {
+	acquire_lock(&com1_mutex);
+
 	if(debug_mode != 0)
 		tty_put(byte, 0);
 
 	com1_last_byte = byte;
-	if(!com1_base) return;
+	if(!com1_base)
+	{
+		release_lock(&com1_mutex);
+		return;
+	}
 
 	if(byte == '\n')
 	{
@@ -88,6 +96,8 @@ void com1_send_byte(char byte)
 		com1_wait();
 		outb(com1_base, byte);
 	}
+
+	release_lock(&com1_mutex);
 }
 
 // com1_send: Sends a string through the serial port

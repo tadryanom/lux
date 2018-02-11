@@ -10,9 +10,12 @@ section '.text'
 ; void *memcpy(void *destination, const void *source, size_t count)
 public memcpy
 memcpy:
-	mov esi, [esp+8]
-	mov edi, [esp+4]
-	mov ecx, [esp+12]
+	push esi
+	push edi
+
+	mov esi, [esp+8+8]
+	mov edi, [esp+8+4]
+	mov ecx, [esp+8+12]
 
 	mov [.return], edi
 
@@ -63,6 +66,8 @@ memcpy:
 	and ecx, 3
 	rep movsb
 
+	pop edi
+	pop esi
 	mov eax, [.return]
 	ret
 
@@ -102,9 +107,12 @@ align 4
 ; void sse2_copy(void *destination, void* source, size_t count)
 public sse2_copy
 sse2_copy:
-	mov esi, [esp+8]
-	mov edi, [esp+4]
-	mov ecx, [esp+12]
+	push esi
+	push edi
+
+	mov esi, [esp+8+8]
+	mov edi, [esp+8+4]
+	mov ecx, [esp+8+12]
 
 .loop:
 	movdqa xmm0, [esi]
@@ -129,6 +137,8 @@ sse2_copy:
 	add edi, 128
 	loop .loop
 
+	pop edi
+	pop esi
 	ret
 
 

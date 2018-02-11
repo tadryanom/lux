@@ -24,8 +24,8 @@ uint32_t ioapic_read(size_t ioapic, uint32_t index)
 
 	void *ptr = (void*)ioapics[ioapic].base;
 
-	uint32_t *selector = (uint32_t*)ptr;
-	uint32_t *buffer = (uint32_t*)(ptr + 16);
+	volatile uint32_t *selector = (uint32_t*)ptr;
+	volatile uint32_t *buffer = (uint32_t*)(ptr + 16);
 
 	selector[0] = index;
 	return buffer[0];
@@ -47,8 +47,8 @@ void ioapic_write(size_t ioapic, uint32_t index, uint32_t value)
 
 	void *ptr = (void*)ioapics[ioapic].base;
 
-	uint32_t *selector = (uint32_t*)ptr;
-	uint32_t *buffer = (uint32_t*)(ptr + 16);
+	volatile uint32_t *selector = (uint32_t*)ptr;
+	volatile uint32_t *buffer = (uint32_t*)(ptr + 16);
 
 	selector[0] = index;
 	buffer[0] = value;

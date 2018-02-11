@@ -116,8 +116,80 @@ use32
 	hlt
 	jmp .halt
 
+
 section '.rodata' align 16
-	
+
+; TRAMPOLINE CODE FOR SMP
+; GOES IN RODATA BECAUSE WE TREAT IT LIKE DATA FOR TWO REASONS
+; 1) We copy it to low memory
+; 2) It's 16-bit code
+
+public trampoline16
+trampoline16:
+use16
+	xor ax, ax
+	mov ds, ax
+	mov es, ax
+
+	; create GDT
+	mov word[gdtr16.limit], end_of_gdt - gdt - 1
+	mov dword[gdtr16.base], gdt
+
+	lgdt [gdtr16.limit]
+
+	; protected mode
+	mov eax, cr0
+	or eax, 1
+	mov cr0, eax
+
+	jmp 0x08:0x1200
+
+times 512 - ($-trampoline16) db 0
+
+trampoline32:
+use32
+	mov ax, 0x10
+	mov ss, ax
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
+	mov esp, ap_stack_top
+
+	; load IDT
+	lidt [idtr]
+
+	; reset EFLAGS
+	push 0x00000002
+	popfd
+
+	; enable SSE
+	mov eax, 0x600
+	mov cr4, eax
+
+	mov eax, cr0
+	and eax, 0xFFFFFFFB
+	or eax, 2
+	mov cr0, eax
+
+	; initialize the FPU
+	finit
+	fwait
+
+	extrn smp_kmain
+	jmp 0x08:smp_kmain
+
+; These pointers already exist below, but we need a copy in low memory for the APs
+align 16
+gdtr16:
+	.limit		= 0x2000
+	.base		= 0x2002
+
+end_trampoline16:
+
+public trampoline16_size
+trampoline16_size:		dw end_trampoline16 - trampoline16
+
 ; gdt:
 ; Global Descriptor Table
 align 16
@@ -182,6 +254,7 @@ gdt:
 	db 0
 	db 0
 
+public end_of_gdt
 end_of_gdt:
 
 ; gdtr:
@@ -197,6 +270,7 @@ align 16
 public idt
 idt:
 	times 256 dw 0, 8, 0x8E00, 0
+public end_of_idt
 end_of_idt:
 
 ; idtr:
@@ -220,5 +294,9 @@ align 16
 stack_bottom:			rb 8192
 stack_top:
 
+; Temporary stack for APs
+align 16
+ap_stack_bottom:		rb 8192
+ap_stack_top:
 
 

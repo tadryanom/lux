@@ -8,6 +8,11 @@
 
 #include <acpi.h>
 
+// We'll use INT 0x30 as a base for hardware IRQs
+// Because if we use the I/O APIC, the legacy PIC can still make spurious IRQs
+// so we need to handle those, so we'll use base 0x20 for the PIC when we use
+// the I/O APIC -- if we use the PIC we'll still use base 0x30
+
 #define IRQ_BASE		0x30
 
 // Limitations
@@ -31,6 +36,10 @@
 #define IOAPIC_VER		1
 #define IOAPIC_ARBITRATION	2
 #define IOAPIC_IRQ_TABLE	16
+
+// Local APIC Registers
+#define LAPIC_COMMAND		0x300
+#define LAPIC_COMMAND_ID	0x310
 
 // Structures...
 
@@ -103,6 +112,9 @@ char irq_mode;
 lapic_t *lapics;
 ioapic_t *ioapics;
 irq_override_t *overrides;
+size_t lapic_count, ioapic_count, override_count;
+
+void *lapic_base;
 
 void apic_init();
 void apic_parse();
@@ -113,6 +125,13 @@ void apic_register_override(madt_override_t *);
 
 uint32_t ioapic_read(size_t, uint32_t);
 void ioapic_write(size_t, uint32_t, uint32_t);
+
+uint32_t lapic_read(size_t);
+void lapic_write(size_t, uint32_t);
+
+void smp_init();
+extern char trampoline16[];
+extern uint16_t trampoline16_size[];
 
 
 
