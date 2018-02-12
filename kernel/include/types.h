@@ -21,7 +21,7 @@ typedef signed long long int64_t;
 typedef unsigned long long uint64_t;
 
 #if __x86_64__
-typedef uint32_t size_t;
+typedef uint64_t size_t;
 #endif
 
 #if __i386__
