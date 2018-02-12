@@ -51,7 +51,7 @@ void acpi_init()
 		while(1);
 	}
 
-	kprintf("acpi: 'RSDT' 0x%xd len %d v%xb OEM '%c%c%c%c%c%c'\n", rsdp->rsdt, rsdt->header.length, rsdt->header.revision, rsdt->header.oem[0], rsdt->header.oem[1], rsdt->header.oem[2], rsdt->header.oem[3], rsdt->header.oem[4], rsdt->header.oem[5]);
+	kprintf("acpi: 'RSDT' 0x%xq len %d v%xb OEM '%c%c%c%c%c%c'\n", (uint64_t)rsdp->rsdt, rsdt->header.length, rsdt->header.revision, rsdt->header.oem[0], rsdt->header.oem[1], rsdt->header.oem[2], rsdt->header.oem[3], rsdt->header.oem[4], rsdt->header.oem[5]);
 
 	// show each table
 	size_t rsdt_count = (rsdt->header.length - sizeof(acpi_header_t)) / sizeof(uint32_t);
@@ -61,7 +61,7 @@ void acpi_init()
 	while(i < rsdt_count)
 	{
 		header = (acpi_header_t*)vmm_request_map(rsdt->tables[i], 1, PAGE_PRESENT | PAGE_RW);
-		kprintf("acpi: '%c%c%c%c' 0x%xd len %d v%xb OEM '%c%c%c%c%c%c'\n", header->signature[0], header->signature[1], header->signature[2], header->signature[3], rsdt->tables[i], header->length, header->revision, header->oem[0], header->oem[1], header->oem[2], header->oem[3], header->oem[4], header->oem[5]);
+		kprintf("acpi: '%c%c%c%c' 0x%xq len %d v%xb OEM '%c%c%c%c%c%c'\n", header->signature[0], header->signature[1], header->signature[2], header->signature[3], (uint64_t)rsdt->tables[i], header->length, header->revision, header->oem[0], header->oem[1], header->oem[2], header->oem[3], header->oem[4], header->oem[5]);
 
 		vmm_unmap((size_t)header, 1);
 		i++;

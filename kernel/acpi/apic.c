@@ -158,7 +158,7 @@ void apic_register_override(madt_override_t *data)
 	overrides[override_count].gsi = data->gsi;
 	overrides[override_count].flags = data->flags;
 
-	kprintf("apic: override IRQ %d bus %d to GSI %d flags 0x%xw (", data->irq, data->bus, data->gsi, data->flags);
+	kprintf("apic: override IRQ %d bus %d GSI %d flags 0x%xw (", data->irq, data->bus, data->gsi, data->flags);
 
 	if(data->flags & MADT_IRQ_LEVEL)
 		kprintf("level ");

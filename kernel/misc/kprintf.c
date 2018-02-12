@@ -136,7 +136,7 @@ void kprintf(char *string, ...)
 	{
 		// print uptime
 		com1_send_byte('[');
-		com1_send(hex32_to_string(global_uptime, conv_str));
+		com1_send(hex64_to_string(global_uptime, conv_str));
 		com1_send("] ");
 	}
 

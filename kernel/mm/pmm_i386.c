@@ -10,6 +10,8 @@
 #include <string.h>
 #include <lock.h>
 
+#if __i386__
+
 uint8_t *pmm_bitmap;
 size_t total_pages, used_pages, reserved_pages;
 uint64_t total_memory, usable_memory;
@@ -276,8 +278,7 @@ size_t pmm_alloc(size_t count)
 	return memory;
 }
 
-
-
+#endif // __i386__
 
 
 

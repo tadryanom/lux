@@ -1,0 +1,15 @@
+
+Here's the source code of the lux kernel, a simple Unix-like kernel aiming to
+provide compatibility with existing Unix applications.
+
+The source code is organized in several directories in a simple manner.
+
+	acpi/			ACPI and APIC implementations.
+	asm_i386/		i386-specific code in assembly.
+	asm_x86_64/		x86_64-specific code in assembly.
+	firmware/		Firmware device drivers, PIT, HPET, etc.
+	io/			I/O device drivers, keyboard, tty, etc.
+	mm/			Memory management.
+	misc/			Things that don't fit into any other category.
+
+

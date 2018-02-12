@@ -14,7 +14,7 @@ lux32:
 
 	$(CC) $(CFLAGS) -target i386-elf -Ikernel/include -c $(CFILES)
 
-	ld -melf_i386 -nostdlib -nodefaultlibs -O2 -T kernel/link.ld $(OBJECTS) -o iso/boot/kernel.sys
+	ld -melf_i386 -nostdlib -nodefaultlibs -O2 -T kernel/ld_i386.ld $(OBJECTS) -o iso/boot/kernel.sys
 
 	grub-mkrescue -o lux.iso iso
 

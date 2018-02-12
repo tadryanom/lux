@@ -6,6 +6,6 @@
 
 #include <types.h>
 
-uint32_t global_uptime = 0;
+uint64_t global_uptime = 0;
 
 

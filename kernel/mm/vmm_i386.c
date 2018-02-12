@@ -10,6 +10,8 @@
 #include <string.h>
 #include <lock.h>
 
+#if __i386__
+
 size_t *page_directory, *page_tables;
 lock_t vmm_mutex = 0;
 
@@ -235,6 +237,6 @@ size_t vmm_request_map(size_t physical, size_t count, uint8_t flags)
 	return virtual + (physical & (PAGE_SIZE-1));
 }
 
-
+#endif // __i386__
 
 

@@ -9,8 +9,10 @@
 #include <types.h>
 #include <boot.h>
 
-// Better have these constant, in case I ever think of doing x86_64
+#if __i386__
 #define PMM_BITMAP_SIZE			0x100000
+#endif
+
 #define PAGE_SIZE			4096
 #define PAGE_SIZE_SHIFT			12		// 12 bits for 4096
 
@@ -19,12 +21,12 @@
 #define PAGE_USER			0x04
 #define PAGE_UNCACHEABLE		0x10
 
+#if __i386__
 #define KERNEL_HEAP			0xD8000000
 #define HW_FRAMEBUFFER			0xF0000000
 #define SW_FRAMEBUFFER			0xF4000000
-#define MMIO_BUFFER			0xF8000000	// PCI MMIO devices are mapped here
-
 #define HEAP_ALIGNMENT			16		// SSE-aligned
+#endif
 
 extern uint64_t total_memory, usable_memory;
 extern uint8_t *pmm_bitmap;

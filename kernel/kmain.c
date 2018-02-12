@@ -15,7 +15,6 @@
 
 void kmain(uint32_t multiboot_magic, multiboot_info_t *multiboot_info, vbe_mode_t *vbe_mode)
 {
-	global_uptime = 0;
 	kprint_init();
 
 	if(multiboot_magic != MULTIBOOT_MAGIC)
