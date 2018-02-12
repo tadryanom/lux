@@ -281,12 +281,12 @@ idtr:
 	.base			dd idt
 
 ; VBE Driver
-vbe_driver:			file "out/kernel/vbe.sys"
+vbe_driver:			file "vbe.sys"
 end_vbe_driver:
 
 ; Boot-time Font
 public bootfont
-bootfont:			file "kernel/asm/cp437.bin"
+bootfont:			file "kernel/asm_i386/cp437.bin"
 
 section '.bss' align 16
 
