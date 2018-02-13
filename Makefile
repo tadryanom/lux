@@ -1,6 +1,6 @@
 
 	CC=clang
-	CFLAGS=-fno-builtin -ffreestanding -fomit-frame-pointer -nostdlib -nodefaultlibs -O2
+	CFLAGS=-fno-builtin -ffreestanding -fomit-frame-pointer -nostdlib -nodefaultlibs -O2 -msse2
 	CFILES=kernel/*.c kernel/*/*.c
 	OBJECTS=*.o
 
@@ -23,10 +23,14 @@ lux32:
 lux64:
 	fasm kernel/asm_i386/vbe.asm vbe.sys
 	fasm kernel/asm_x86_64/bootstrap.asm bootstrap.o
+	fasm kernel/asm_x86_64/io.asm io.o
+	fasm kernel/asm_x86_64/state.asm state.o
+	fasm kernel/asm_x86_64/cpu.asm cpu.o
+	fasm kernel/asm_x86_64/sse2.asm sse2.o
 
-	$(CC) $(CFLAGS) -target x86_64 -mno-red-zone -Ikernel/include -c $(CFILES)
+	$(CC) $(CFLAGS) -target x86_64 -mno-red-zone -mcmodel=large -Ikernel/include -c $(CFILES)
 
-	ld -melf_i386 -nostdlib -nodefaultlibs -O2 -T kernel/ld_x86_64.ld $(OBJECTS) -o kernel64.sys
+	ld -melf_x86_64 -nostdlib -nodefaultlibs -O2 -T kernel/ld_x86_64.ld $(OBJECTS) -o kernel64.sys
 
 	fasm kernel/asm_x86_64/setup.asm iso/boot/kernel.sys
 	grub-mkrescue -o lux.iso iso

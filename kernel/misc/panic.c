@@ -36,10 +36,17 @@ void panic(char *string)
 void dump_registers(registers_t *registers)
 {
 	kprintf(" --- BEGINNING REGISTER DUMP AT TIME OF ERROR ---\n");
+
+#if __i386__
 	kprintf("  eax: %xd  ebx: %xd  ecx: %xd  edx: %xd\n", registers->eax, registers->ebx, registers->ecx, registers->edx);
 	kprintf("  esi: %xd  edi: %xd  esp: %xd  ebp: %xd\n", registers->esi, registers->edi, registers->esp, registers->ebp);
 	kprintf("  eflags: %xd  cs: %xw  ss: %xw  ds: %xw  es: %xw\n", registers->eflags, registers->cs, registers->ss, registers->ds, registers->es);
 	kprintf("  cr0: %xd  cr2: %xd  cr3: %xd  cr4: %xd\n", registers->cr0, registers->cr2, registers->cr3, registers->cr4);
+#endif
+
+#if __x86_64__
+	kprintf("  rax: %xq  rbx: %xq  rcx: %xq  rdx: %xq\n", registers->rax, registers->rbx, registers->rcx, registers->rdx);
+#endif
 	kprintf(" --- END OF REGISTER DUMP ---\n");
 }
 

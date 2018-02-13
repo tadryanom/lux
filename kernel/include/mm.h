@@ -13,6 +13,10 @@
 #define PMM_BITMAP_SIZE			0x100000
 #endif
 
+#if __x86_64__
+#define PMM_BITMAP_SIZE			0x200000	// maximum of 64 GB physical memory
+#endif
+
 #define PAGE_SIZE			4096
 #define PAGE_SIZE_SHIFT			12		// 12 bits for 4096
 
@@ -26,6 +30,13 @@
 #define HW_FRAMEBUFFER			0xF0000000
 #define SW_FRAMEBUFFER			0xF4000000
 #define HEAP_ALIGNMENT			16		// SSE-aligned
+#endif
+
+#if __x86_64__
+#define KERNEL_HEAP			0x8000000000	// 512 GB
+#define HW_FRAMEBUFFER			0x8080000000	// 514 GB
+#define SW_FRAMEBUFFER			0x8084000000	// after HW framebuffer
+#define HEAP_ALIGNMENT			32		// 64-bit might use AVX, so do AVX alignment
 #endif
 
 extern uint64_t total_memory, usable_memory;

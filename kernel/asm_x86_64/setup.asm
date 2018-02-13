@@ -116,7 +116,7 @@ use32
 	; make the PML4
 	mov edi, PML4
 	mov eax, PDPT
-	or eax, 7
+	or eax, 3
 	stosd
 
 	mov edi, PML4
@@ -130,7 +130,7 @@ use32
 
 .pdpt_loop:
 	mov eax, ebx
-	or eax, 7
+	or eax, 3
 	stosd
 	mov eax, 0
 	stosd
@@ -239,6 +239,10 @@ start64:
 	mov rax, 0
 	not eax
 	and rsp, rax
+
+	xor rax, rax
+	xor rbx, rbx
+	xor rcx, rcx
 
 	mov eax, [saved_magic]
 	mov ebx, [saved_structure]

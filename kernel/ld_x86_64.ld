@@ -1,20 +1,24 @@
 OUTPUT_FORMAT("binary")
 OUTPUT_ARCH("i386:x86-64")
-ENTRY(start)
+ENTRY(start64)
 SECTIONS
 {
 	. = 0x10000200000;
+	.startup : {
+		*(.startup)
+		. = ALIGN(8);
+	}
 	.text : {
 		*(.text)
-		. = ALIGN(32);
+		. = ALIGN(8);
 	}
 	.data : {
 		*(.data)
-		. = ALIGN(32);
+		. = ALIGN(8);
 	}
 	.rodata : {
 		*(.rodata)
-		. = ALIGN(32);
+		. = ALIGN(8);
 	}
 	.bss : {
 		*(COMMON)
