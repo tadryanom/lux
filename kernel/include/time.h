@@ -8,6 +8,6 @@
 
 #include <types.h>
 
-uint32_t global_uptime;
+uint64_t global_uptime;
 
 

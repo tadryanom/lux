@@ -20,10 +20,11 @@ void kmain(uint32_t multiboot_magic, multiboot_info_t *multiboot_info, vbe_mode_
 	if(multiboot_magic != MULTIBOOT_MAGIC)
 		kprintf("warning: invalid multiboot magic; taking a risk and continuing...\n");
 
+	mm_init(multiboot_info);
+
 	// for now, until I implement the other stuff for x86_64
 	while(1);
 
-	mm_init(multiboot_info);
 	screen_init(vbe_mode);
 	install_exceptions();
 	acpi_init();

@@ -28,8 +28,6 @@ void pmm_mark_page_free(size_t);
 
 void pmm_init(multiboot_info_t *multiboot_info)
 {
-	char hex_string[17];
-
 	if(!multiboot_info->flags & MULTIBOOT_FLAGS_MMAP || !multiboot_info->mmap_length || !multiboot_info->mmap_addr)
 	{
 		kprintf("boot error: E820 memory map is not present.\n");
