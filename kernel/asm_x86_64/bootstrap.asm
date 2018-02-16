@@ -16,8 +16,8 @@ public start64
 start64:
 	cli
 	cld
-	mov rax, gdtr
-	lgdt [rax]
+	mov rdx, gdtr
+	lgdt [rdx]
 
 	push 0x28
 	mov rdx, .next
@@ -33,8 +33,8 @@ start64:
 	mov gs, dx
 	mov rsp, stack_top
 
-	mov rax, idtr
-	lidt [rax]
+	mov rdx, idtr
+	lidt [rdx]
 
 	push 2
 	popfq
@@ -104,8 +104,8 @@ trampoline64:
 	mov gs, ax
 	mov rsp, ap_stack_top
 
-	mov rax, gdtr
-	lgdt [rax]
+	mov rdx, gdtr
+	lgdt [rdx]
 
 	push 0x28
 	push 0x1200
@@ -121,8 +121,8 @@ times 512 - ($-trampoline16) db 0
 	mov gs, ax
 	mov rsp, ap_stack_top
 
-	mov rax, idtr
-	lidt [rax]
+	mov rdx, idtr
+	lidt [rdx]
 
 	push 2
 	popfq

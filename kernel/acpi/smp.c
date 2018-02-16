@@ -17,12 +17,18 @@ void smp_wait();
 size_t current_ap;		// this will tell the APs which index they are
 uint8_t ap_flag;		// this will tell the BSP if the AP started up
 
+cpu_t *cpus;
+
 // smp_init(): Initializes application processors
 // Param:	Nothing
 // Return:	Nothing
 
 void smp_init()
 {
+	cpus = kcalloc(sizeof(cpu_t), MAX_LAPICS);
+	cpus[0].index = 0;
+	cpus[0].stack = kmalloc(STACK_SIZE);
+
 	kprintf("smp: total of %d usable CPUs present.\n", lapic_count);
 	if(lapic_count <= 1)
 	{
@@ -114,6 +120,7 @@ void smp_kmain()
 #endif
 
 	kprintf("smp: CPU index %d started up.\n", current_ap);
+
 	ap_flag = 1;
 	while(1);
 }
