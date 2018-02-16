@@ -63,7 +63,7 @@ flush_tlb:
 
 .loop:
 	invlpg [rax]
-	add eax, 4096
+	add rax, 4096
 	loop .loop
 
 .done:

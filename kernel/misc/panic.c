@@ -56,38 +56,38 @@ void dump_registers(registers_t *registers)
 
 void install_exceptions()
 {
-	idt_install(0, (uint32_t)&divide_handler);
-	idt_install(1, (uint32_t)&debug_handler);
-	idt_install(2, (uint32_t)&nmi_handler);
-	idt_install(3, (uint32_t)&breakpoint_handler);
-	idt_install(4, (uint32_t)&overflow_handler);
-	idt_install(5, (uint32_t)&bound_handler);
-	idt_install(6, (uint32_t)&opcode_handler);
-	idt_install(7, (uint32_t)&device_handler);
-	idt_install(8, (uint32_t)&double_handler);
-	idt_install(9, (uint32_t)&coprocessor_handler);
-	idt_install(10, (uint32_t)&tss_handler);
-	idt_install(11, (uint32_t)&segment_handler);
-	idt_install(12, (uint32_t)&stack_handler);
-	idt_install(13, (uint32_t)&gpf_handler);
-	idt_install(14, (uint32_t)&page_handler);
-	idt_install(15, (uint32_t)&reserved_handler);
-	idt_install(16, (uint32_t)&floating_handler);
-	idt_install(17, (uint32_t)&alignment_handler);
-	idt_install(18, (uint32_t)&machine_handler);
-	idt_install(19, (uint32_t)&simd_handler);
-	idt_install(20, (uint32_t)&virtual_handler);
-	idt_install(21, (uint32_t)&reserved_handler);
-	idt_install(22, (uint32_t)&reserved_handler);
-	idt_install(23, (uint32_t)&reserved_handler);
-	idt_install(24, (uint32_t)&reserved_handler);
-	idt_install(25, (uint32_t)&reserved_handler);
-	idt_install(26, (uint32_t)&reserved_handler);
-	idt_install(27, (uint32_t)&reserved_handler);
-	idt_install(28, (uint32_t)&reserved_handler);
-	idt_install(29, (uint32_t)&reserved_handler);
-	idt_install(30, (uint32_t)&security_handler);
-	idt_install(31, (uint32_t)&reserved_handler);
+	idt_install(0, (size_t)&divide_handler);
+	idt_install(1, (size_t)&debug_handler);
+	idt_install(2, (size_t)&nmi_handler);
+	idt_install(3, (size_t)&breakpoint_handler);
+	idt_install(4, (size_t)&overflow_handler);
+	idt_install(5, (size_t)&bound_handler);
+	idt_install(6, (size_t)&opcode_handler);
+	idt_install(7, (size_t)&device_handler);
+	idt_install(8, (size_t)&double_handler);
+	idt_install(9, (size_t)&coprocessor_handler);
+	idt_install(10, (size_t)&tss_handler);
+	idt_install(11, (size_t)&segment_handler);
+	idt_install(12, (size_t)&stack_handler);
+	idt_install(13, (size_t)&gpf_handler);
+	idt_install(14, (size_t)&page_handler);
+	idt_install(15, (size_t)&reserved_handler);
+	idt_install(16, (size_t)&floating_handler);
+	idt_install(17, (size_t)&alignment_handler);
+	idt_install(18, (size_t)&machine_handler);
+	idt_install(19, (size_t)&simd_handler);
+	idt_install(20, (size_t)&virtual_handler);
+	idt_install(21, (size_t)&reserved_handler);
+	idt_install(22, (size_t)&reserved_handler);
+	idt_install(23, (size_t)&reserved_handler);
+	idt_install(24, (size_t)&reserved_handler);
+	idt_install(25, (size_t)&reserved_handler);
+	idt_install(26, (size_t)&reserved_handler);
+	idt_install(27, (size_t)&reserved_handler);
+	idt_install(28, (size_t)&reserved_handler);
+	idt_install(29, (size_t)&reserved_handler);
+	idt_install(30, (size_t)&security_handler);
+	idt_install(31, (size_t)&reserved_handler);
 }
 
 // exception_handler(): Common code for exception handlers

@@ -80,7 +80,7 @@ int smp_boot_ap(size_t ap)
 	smp_wait();
 
 	size_t i = 0;
-	while(i < 0xFFFF)
+	while(i < 0xFF)
 	{
 		smp_wait();
 		if(ap_flag == 1)
@@ -91,7 +91,7 @@ int smp_boot_ap(size_t ap)
 		continue;
 	}
 
-	kprintf("smp: CPU index %d didn't respond to IPI.\n", ap);
+	kprintf("smp: CPU index %d didn't respond to SIPI.\n", ap);
 	return 1;
 }
 
@@ -101,12 +101,17 @@ int smp_boot_ap(size_t ap)
 
 void smp_kmain()
 {
-	// enable paging
+	// for 32-bit, we need to enable paging because the trampoline code
+	// doesn't do it. But for 64-bit, it has to because paging is always
+	// enabled in long mode.
+
+#if __i386__
 	write_cr3((uint32_t)page_directory);
 	uint32_t cr0 = read_cr0();
 	cr0 |= 0x80000000;
 	cr0 &= ~0x60000000;		// caching
 	write_cr0(cr0);
+#endif
 
 	kprintf("smp: CPU index %d started up.\n", current_ap);
 	ap_flag = 1;

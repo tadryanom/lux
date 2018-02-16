@@ -24,6 +24,7 @@
 #define PAGE_RW				0x02
 #define PAGE_USER			0x04
 #define PAGE_UNCACHEABLE		0x10
+#define PAGE_LARGE			0x80		// only used for x86_64
 
 #if __i386__
 #define KERNEL_HEAP			0xD8000000
@@ -33,6 +34,7 @@
 #endif
 
 #if __x86_64__
+#define PHYSICAL_MEMORY			0x10000000000	// 1024 GB
 #define KERNEL_HEAP			0x8000000000	// 512 GB
 #define HW_FRAMEBUFFER			0x8080000000	// 514 GB
 #define SW_FRAMEBUFFER			0x8084000000	// after HW framebuffer
