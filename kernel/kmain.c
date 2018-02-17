@@ -8,7 +8,7 @@
 #include <kprintf.h>
 #include <time.h>
 #include <mm.h>
-#include <string.h>
+#include <gdt.h>
 #include <tty.h>
 #include <acpi.h>
 #include <apic.h>
@@ -22,11 +22,13 @@ void kmain(uint32_t multiboot_magic, multiboot_info_t *multiboot_info, vbe_mode_
 
 	mm_init(multiboot_info);
 	screen_init(vbe_mode);
+	gdt_init();
 	install_exceptions();
 	acpi_init();
 	apic_init();
 
-	while(1);
+	while(1)
+		asm volatile ("sti\nhlt");
 }
 
 

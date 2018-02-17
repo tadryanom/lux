@@ -72,17 +72,12 @@ void com1_wait()
 
 void com1_send_byte(char byte)
 {
-	acquire_lock(&com1_mutex);
-
 	if(debug_mode != 0)
 		tty_put(byte, 0);
 
 	com1_last_byte = byte;
 	if(!com1_base)
-	{
-		release_lock(&com1_mutex);
 		return;
-	}
 
 	if(byte == '\n')
 	{
@@ -96,8 +91,6 @@ void com1_send_byte(char byte)
 		com1_wait();
 		outb(com1_base, byte);
 	}
-
-	release_lock(&com1_mutex);
 }
 
 // com1_send: Sends a string through the serial port
@@ -121,6 +114,8 @@ void com1_send(char *string)
 
 void kprintf(char *string, ...)
 {
+	acquire_lock(&com1_mutex);
+
 	if(debug_mode != 0)
 		tty_lock(0);	// tty0 is the kernel's log
 
@@ -223,6 +218,8 @@ void kprintf(char *string, ...)
 
 	if(debug_mode != 0)
 		tty_unlock(0);
+
+	release_lock(&com1_mutex);
 }
 
 

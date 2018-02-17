@@ -90,6 +90,36 @@ release_lock:
 	btr dword[eax], 0
 	ret
 
+; void flush_gdt(gdtr_t *, uint16_t, uint16_t)
+public flush_gdt
+flush_gdt:
+	cli
+	cld
+	mov eax, [esp+4]
+	lgdt [eax]
+
+	mov eax, [esp+8]
+	push eax
+	push .next
+	retf
+
+.next:
+	mov eax, [esp+12]
+	mov ss, ax
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
+
+	ret
+
+; void load_fs(uint16_t)
+public load_fs
+load_fs:
+	mov eax, [esp+4]
+	mov fs, ax
+	ret
+
 ; For exceptions
 extrn exception_handler
 

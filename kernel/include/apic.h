@@ -16,7 +16,8 @@
 #define IRQ_BASE		0x30
 #define UNUSED_PIC_BASE		0x20
 
-// Limitations
+// Limitations -- don't try to increase these --
+// -- because we have no xAPIC support.
 #define MAX_LAPICS		16		// # of CPUs
 #define MAX_IOAPICS		16
 #define MAX_OVERRIDES		48

@@ -193,7 +193,6 @@ trampoline16_size:		dw end_trampoline16 - trampoline16
 ; gdt:
 ; Global Descriptor Table
 align 16
-public gdt
 gdt:
 	; 0x00 -- null descriptor
 	dq 0

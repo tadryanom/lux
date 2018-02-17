@@ -90,219 +90,228 @@ release_lock:
 	btr qword[rax], 0
 	ret
 
+; void flush_gdt(gdtr_t *, uint16_t, uint16_t)
+public flush_gdt
+flush_gdt:
+	cli
+	cld
+	lgdt [rdi]
+
+	push rsi
+	mov rsi, .next
+	push rsi
+	retf
+
+.next:
+	mov ss, dx
+	mov ds, dx
+	mov es, dx
+	mov fs, dx
+	mov gs, dx
+
+	ret
+
+; void write_msr(uint32_t, uint64_t)
+public write_msr
+write_msr:
+	mov rcx, rdi
+	mov rax, rsi
+	mov rdx, rax
+	shr rdx, 32
+	wrmsr
+
+	ret
+
+; uint64_t read_msr(uint32_t)
+public read_msr
+read_msr:
+	mov rcx, rdi
+	rdmsr
+	mov rcx, 0
+	not ecx
+	and rax, rcx
+	shl rdx, 32
+	or rax, rdx
+
+	ret
+
 ; For exceptions
 extrn exception_handler
 
 public divide_handler
 divide_handler:
-	push 0
-	mov r15, divide_text
-	push r15
+	mov rsi, 0
+	mov rdi, divide_text
 	call exception_handler
 
-	add rsp, 16
 	iret
 
 public debug_handler
 debug_handler:
-	push 0
-	mov r15, debug_text
-	push r15
+	mov rsi, 0
+	mov rdi, debug_text
 	call exception_handler
 
-	add rsp, 16
 	iret
 
 public nmi_handler
 nmi_handler:
-	push 0
-	mov r15, nmi_text
-	push r15
+	mov rsi, 0
+	mov rdi, nmi_text
 	call exception_handler
 
-	add rsp, 16
 	iret
 
 public breakpoint_handler
 breakpoint_handler:
-	push 0
-	mov r15, breakpoint_text
-	push r15
+	mov rsi, 0
+	mov rdi, breakpoint_text
 	call exception_handler
 
-	add rsp, 16
 	iret
 
 public overflow_handler
 overflow_handler:
-	push 0
-	mov r15, overflow_text
-	push r15
+	mov rsi, 0
+	mov rdi, overflow_text
 	call exception_handler
 
-	add rsp, 16
 	iret
 
 public bound_handler
 bound_handler:
-	push 0
-	mov r15, bound_text
-	push r15
+	mov rsi, 0
+	mov rdi, bound_text
 	call exception_handler
 
-	add rsp, 16
 	iret
 
 public opcode_handler
 opcode_handler:
-	push 0
-	mov r15, opcode_text
-	push r15
+	mov rsi, 0
+	mov rdi, opcode_text
 	call exception_handler
 
-	add rsp, 16
 	iret
 
 public device_handler
 device_handler:
-	push 0
-	mov r15, device_text
-	push r15
+	mov rsi, 0
+	mov rdi, device_text
 	call exception_handler
 
-	add rsp, 16
 	iret
 
 public double_handler
 double_handler:
-	mov r15, double_text
-	push r15
+	pop rsi
+	mov rdi, double_text
 	call exception_handler
 
-	add rsp, 16
 	iret
 
 public coprocessor_handler
 coprocessor_handler:
-	push 0
-	mov r15, coprocessor_text
-	push r15
+	mov rsi, 0
+	mov rdi, coprocessor_text
 	call exception_handler
 
-	add rsp, 16
 	iret
 
 public tss_handler
 tss_handler:
-	mov r15, tss_text
-	push r15
+	pop rsi
+	mov rdi, tss_text
 	call exception_handler
 
-	add rsp, 16
 	iret
 
 public segment_handler
 segment_handler:
-	mov r15, segment_text
-	push r15
+	pop rsi
+	mov rdi, segment_text
 	call exception_handler
 
-	add rsp, 16
 	iret
 
 public stack_handler
 stack_handler:
-	mov r15, stack_text
-	push r15
+	pop rsi
+	mov rdi, stack_text
 	call exception_handler
 
-	add rsp, 16
 	iret
 
 public gpf_handler
 gpf_handler:
-	mov r15, gpf_text
-	push r15
+	pop rsi
+	mov rdi, gpf_text
 	call exception_handler
 
-	add rsp, 16
 	iret
 
 public page_handler
 page_handler:
-	mov r15, page_text
-	push r15
+	pop rsi
+	mov rdi, page_text
 	call exception_handler
 
-	add rsp, 16
 	iret
 
 public reserved_handler
 reserved_handler:
-	push 0
-	mov r15, reserved_text
-	push r15
+	mov rsi, 0
+	mov rdi, reserved_text
 	call exception_handler
 
-	add rsp, 16
 	iret
 
 public floating_handler
 floating_handler:
-	push 0
-	mov r15, floating_text
-	push r15
+	mov rsi, 0
+	mov rdi, floating_text
 	call exception_handler
 
-	add rsp, 16
 	iret
 
 public alignment_handler
 alignment_handler:
-	mov r15, alignment_text
-	push r15
+	pop rsi
+	mov rdi, alignment_text
 	call exception_handler
 
-	add rsp, 16
 	iret
 
 public machine_handler
 machine_handler:
-	push 0
-	mov r15, machine_text
-	push r15
+	mov rsi, 0
+	mov rdi, machine_text
 	call exception_handler
 
-	add rsp, 16
 	iret
 
 public simd_handler
 simd_handler:
-	push 0
-	mov r15, simd_text
-	push r15
+	mov rsi, 0
+	mov rdi, simd_text
 	call exception_handler
 
-	add rsp, 16
 	iret
 
 public virtual_handler
 virtual_handler:
-	push 0
-	mov r15, virtual_text
-	push r15
+	mov rsi, 0
+	mov rdi, virtual_text
 	call exception_handler
 
-	add rsp, 16
 	iret
 
 public security_handler
 security_handler:
-	mov r15, security_text
-	push r15
+	pop rsi
+	mov rdi, security_text
 	call exception_handler
 
-	add rsp, 16
 	iret
 
 ;section '.rodata'

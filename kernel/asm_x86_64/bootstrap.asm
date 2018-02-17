@@ -19,13 +19,13 @@ start64:
 	mov rdx, gdtr
 	lgdt [rdx]
 
-	push 0x28
+	push 0x18
 	mov rdx, .next
 	push rdx
 	retf
 
 .next:
-	mov dx, 0x30
+	mov dx, 0x20
 	mov ss, dx
 	mov ds, dx
 	mov es, dx
@@ -107,13 +107,13 @@ trampoline64:
 	mov rdx, gdtr
 	lgdt [rdx]
 
-	push 0x28
+	push 0x18
 	push 0x1200
 	retf
 
 times 512 - ($-trampoline16) db 0
 
-	mov ax, 0x30
+	mov ax, 0x20
 	mov ss, ax
 	mov ds, ax
 	mov es, ax
@@ -167,7 +167,6 @@ end_trampoline16:
 public trampoline16_size
 trampoline16_size:		dw end_trampoline16 - trampoline16
 
-public gdt
 align 16
 gdt:
 	; null descriptor 0x00
@@ -189,23 +188,7 @@ gdt:
 	db 11001111b
 	db 0
 
-	; 16-bit code descriptor 0x18
-	dw 0xFFFF
-	dw 0
-	db 0
-	db 10011010b
-	db 10001111b
-	db 0
-
-	; 16-bit data descriptor 0x20
-	dw 0xFFFF
-	dw 0
-	db 0
-	db 10010010b
-	db 10001111b
-	db 0
-
-	; 64-bit kernel code descriptor 0x28
+	; 64-bit kernel code descriptor 0x18
 	dw 0xFFFF
 	dw 0
 	db 0
@@ -213,7 +196,7 @@ gdt:
 	db 10101111b
 	db 0
 
-	; 64-bit kernel data descriptor 0x30
+	; 64-bit kernel data descriptor 0x20
 	dw 0xFFFF
 	dw 0
 	db 0
@@ -221,7 +204,7 @@ gdt:
 	db 10101111b
 	db 0
 
-	; 64-bit user code descriptor 0x38
+	; 64-bit user code descriptor 0x28
 	dw 0xFFFF
 	dw 0
 	db 0
@@ -229,7 +212,7 @@ gdt:
 	db 10101111b
 	db 0
 
-	; 64-bit user data descriptor 0x40
+	; 64-bit user data descriptor 0x30
 	dw 0xFFFF
 	dw 0
 	db 0
@@ -239,7 +222,6 @@ gdt:
 
 end_of_gdt:
 
-public gdtr
 align 16
 gdtr:
 	dw end_of_gdt - gdt - 1
@@ -248,7 +230,7 @@ gdtr:
 public idt
 align 16
 idt:
-	times 256 dw 0, 0x28, 0x8E00, 0, 0, 0, 0, 0
+	times 256 dw 0, 0x18, 0x8E00, 0, 0, 0, 0, 0
 
 end_of_idt:
 

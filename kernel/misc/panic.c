@@ -7,6 +7,7 @@
 #include <tty.h>
 #include <kprintf.h>
 #include <idt.h>
+#include <cpu.h>
 
 // panic: Makes a panic message
 // Param:	char *string - string to display
@@ -51,8 +52,9 @@ void dump_registers(registers_t *registers)
 	kprintf("   r8: %xq  r9:  %xq  r10: %xq\n", registers->r8, registers->r9, registers->r10);
 	kprintf("  r11: %xq  r12: %xq  r13: %xq\n", registers->r11, registers->r12, registers->r13);
 	kprintf("  r14: %xq  r15: %xq\n", registers->r14, registers->r15);
+	kprintf("  cr2: %xq  fs:  %xq  gs:  %xq\n", registers->cr2, read_msr(MSR_FS_BASE), read_msr(MSR_GS_BASE));
 	kprintf("  cs: %xw  ss: %xw  ds: %xw  es: %xw\n", registers->cs, registers->ss, registers->ds, registers->es);
-	kprintf("  cr0: %xd  cr2: %xq   cr3: %xq\n", registers->cr0, registers->cr2, registers->cr3);
+	kprintf("  cr0: %xd  cr3: %xq   cr4: %xd\n", registers->cr0, registers->cr3, registers->cr4);
 #endif
 	kprintf(" --- END OF REGISTER DUMP ---\n");
 }
@@ -110,7 +112,8 @@ void exception_handler(char *string, uint32_t code)
 	debug_mode = 1;
 	tty_switch(0);
 
-	kprintf("KERNEL PANIC: %s, error code 0x%xd\n", string, code);
+	cpu_t FS_BASE *cpu = (cpu_t FS_BASE *)0;
+	kprintf("EXCEPTION ON CPU %d: %s, error code 0x%xd\n", cpu->index, string, code);
 	dump_registers(&registers);
 
 	while(1);

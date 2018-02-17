@@ -10,14 +10,14 @@
 #include <kprintf.h>
 #include <string.h>	// memcpy
 #include <cpu.h>
+#include <gdt.h>
 
 int smp_boot_ap(size_t);
 void smp_wait();
+void smp_register_cpu(size_t);
 
 size_t current_ap;		// this will tell the APs which index they are
 uint8_t ap_flag;		// this will tell the BSP if the AP started up
-
-cpu_t *cpus;
 
 // smp_init(): Initializes application processors
 // Param:	Nothing
@@ -25,11 +25,11 @@ cpu_t *cpus;
 
 void smp_init()
 {
-	cpus = kcalloc(sizeof(cpu_t), MAX_LAPICS);
-	cpus[0].index = 0;
-	cpus[0].stack = kmalloc(STACK_SIZE);
-
 	kprintf("smp: total of %d usable CPUs present.\n", lapic_count);
+
+	// register the bsp
+	smp_register_cpu(0);
+
 	if(lapic_count <= 1)
 	{
 		kprintf("smp: no application processors present, nothing to do.\n");
@@ -118,9 +118,34 @@ void smp_kmain()
 #endif
 
 	kprintf("smp: CPU index %d started up.\n", current_ap);
-
+	smp_register_cpu(current_ap);
 	ap_flag = 1;
-	while(1);
+
+	while(1)
+		asm volatile ("sti\nhlt");
+}
+
+// smp_register_cpu(): Registers a CPU that has started up
+// Modifies the GDT in 32-bit mode, uses MSR_FS_BASE in 64-bit mode
+// Param:	size_t index - CPU index
+// Return:	Nothing
+
+void smp_register_cpu(size_t index)
+{
+	cpu_t *cpu = kmalloc(sizeof(cpu_t));
+	cpu->index = index;
+	cpu->stack = kmalloc(STACK_SIZE) + STACK_SIZE;
+
+#if __i386__
+	gdt_set_entry(GDT_CPU_INFO + index, (uint32_t)cpu, GDT_ACCESS_PRESENT | GDT_ACCESS_RW, GDT_FLAGS_PMODE);
+	gdt_set_limit(GDT_CPU_INFO + index, sizeof(cpu_t));
+	flush_gdt(gdtr, 0x08, 0x10);
+	load_fs((GDT_CPU_INFO + index) << 3);
+#endif
+
+#if __x86_64__
+	write_msr(MSR_FS_BASE, (uint64_t)cpu);
+#endif
 }
 
 
