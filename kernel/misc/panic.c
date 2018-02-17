@@ -40,12 +40,19 @@ void dump_registers(registers_t *registers)
 #if __i386__
 	kprintf("  eax: %xd  ebx: %xd  ecx: %xd  edx: %xd\n", registers->eax, registers->ebx, registers->ecx, registers->edx);
 	kprintf("  esi: %xd  edi: %xd  esp: %xd  ebp: %xd\n", registers->esi, registers->edi, registers->esp, registers->ebp);
-	kprintf("  eflags: %xd  cs: %xw  ss: %xw  ds: %xw  es: %xw\n", registers->eflags, registers->cs, registers->ss, registers->ds, registers->es);
+	kprintf("  efl: %xd  cs: %xw  ss: %xw  ds: %xw  es: %xw\n", registers->eflags, registers->cs, registers->ss, registers->ds, registers->es);
 	kprintf("  cr0: %xd  cr2: %xd  cr3: %xd  cr4: %xd\n", registers->cr0, registers->cr2, registers->cr3, registers->cr4);
 #endif
 
 #if __x86_64__
-	kprintf("  rax: %xq  rbx: %xq  rcx: %xq  rdx: %xq\n", registers->rax, registers->rbx, registers->rcx, registers->rdx);
+	kprintf("  rax: %xq  rbx: %xq  rcx: %xq\n", registers->rax, registers->rbx, registers->rcx);
+	kprintf("  rdx: %xq  rsi: %xq  rdi: %xq\n", registers->rdx, registers->rsi, registers->rdi);
+	kprintf("  rsp: %xq  rbp: %xq  rfl: %xq\n", registers->rsp, registers->rbp, registers->rflags);
+	kprintf("   r8: %xq  r9:  %xq  r10: %xq\n", registers->r8, registers->r9, registers->r10);
+	kprintf("  r11: %xq  r12: %xq  r13: %xq\n", registers->r11, registers->r12, registers->r13);
+	kprintf("  r14: %xq  r15: %xq\n", registers->r14, registers->r15);
+	kprintf("  cs: %xw  ss: %xw  ds: %xw  es: %xw\n", registers->cs, registers->ss, registers->ds, registers->es);
+	kprintf("  cr0: %xd  cr2: %xq   cr3: %xq\n", registers->cr0, registers->cr2, registers->cr3);
 #endif
 	kprintf(" --- END OF REGISTER DUMP ---\n");
 }

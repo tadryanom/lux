@@ -42,8 +42,6 @@ void smp_init()
 	size_t i = 0;
 	for(i = 0; i < lapic_count; i++)
 		smp_boot_ap(i);
-
-	while(1);
 }
 
 // smp_wait(): Waits for IPIs to be sent

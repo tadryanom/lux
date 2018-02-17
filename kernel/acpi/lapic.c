@@ -32,6 +32,16 @@ void lapic_write(size_t index, uint32_t value)
 	ptr[0] = value;
 }
 
+// lapic_eoi(): Sends an EOI
+// Param:	Nothing
+// Return:	Nothing
+
+inline void lapic_eoi()
+{
+	lapic_write(LAPIC_EOI, 0);
+}
+
+
 
 
 

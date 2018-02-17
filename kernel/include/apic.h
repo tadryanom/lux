@@ -14,6 +14,7 @@
 // the I/O APIC -- if we use the PIC we'll still use base 0x30
 
 #define IRQ_BASE		0x30
+#define UNUSED_PIC_BASE		0x20
 
 // Limitations
 #define MAX_LAPICS		16		// # of CPUs
@@ -32,14 +33,26 @@
 #define MADT_IRQ_LEVEL		0x0008
 
 // I/O APIC Registers
-#define IOAPIC_ID		0
-#define IOAPIC_VER		1
-#define IOAPIC_ARBITRATION	2
-#define IOAPIC_IRQ_TABLE	16
+#define IOAPIC_ID		0x00
+#define IOAPIC_VER		0x01
+#define IOAPIC_ARBITRATION	0x02
+#define IOAPIC_IRQ_TABLE	0x10
+
+#define IOAPIC_ACTIVE_LOW	0x2000
+#define IOAPIC_LEVEL		0x8000
+#define IOAPIC_MASK		0x10000
 
 // Local APIC Registers
+#define LAPIC_ID		0x020
+#define LAPIC_VERSION		0x030
+#define LAPIC_TASK_PRIORITY	0x080
+#define LAPIC_EOI		0x0B0
+#define LAPIC_SPURIOUS_IRQ	0x0F0
 #define LAPIC_COMMAND		0x300
 #define LAPIC_COMMAND_ID	0x310
+#define LAPIC_TIMER_INIT_COUNT	0x380
+#define LAPIC_TIMER_CURR_COUNT	0x390
+#define LAPIC_TIMER_DIVIDE	0x3E0
 
 // Structures...
 
@@ -125,9 +138,13 @@ void apic_register_override(madt_override_t *);
 
 uint32_t ioapic_read(size_t, uint32_t);
 void ioapic_write(size_t, uint32_t, uint32_t);
+void ioapic_init();
+void ioapic_mask(uint8_t);
+void ioapic_unmask(uint8_t);
 
 uint32_t lapic_read(size_t);
 void lapic_write(size_t, uint32_t);
+void lapic_eoi();
 
 void smp_init();
 extern char trampoline16[];

@@ -6,6 +6,7 @@
 
 #include <acpi.h>
 #include <apic.h>
+#include <pic.h>
 #include <mm.h>
 #include <kprintf.h>
 
@@ -37,17 +38,26 @@ void apic_init()
 	{
 		kprintf("apic: ACPI MADT not present, using one CPU and legacy PIC for IRQs.\n");
 		irq_mode = IRQ_PIC;
-		//pic_init();
+		pic_init(IRQ_BASE);
 		return;
 	}
 
 	apic_parse();
 	smp_init();
 
-	/*if(ioapic_count != 0)
+	if(ioapic_count != 0)
+	{
+		irq_mode = IRQ_IOAPIC;
 		ioapic_init();
+	}
 	else
-		pic_init();*/
+	{
+		irq_mode = IRQ_PIC;
+		pic_init(IRQ_BASE);
+	}
+
+	// we can now enable interrupts
+	asm volatile ("sti");
 }
 
 // apic_parse(): Parses the APIC table data

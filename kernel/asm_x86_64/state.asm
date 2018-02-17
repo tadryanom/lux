@@ -47,7 +47,7 @@ save_registers:
 	mov [tmp_struct.cr4], rax
 
 	; copy to the destination
-	mov rdi, rsi			; register_t *
+	;mov rdi, rsi			; register_t *
 	mov rsi, tmp_struct
 	mov rcx, end_tmp_struct-tmp_struct
 	rep movsb
