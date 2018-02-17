@@ -155,6 +155,9 @@ void vmm_map(size_t virtual, size_t physical, size_t count, uint8_t flags)
 
 void vmm_unmap(size_t virtual, size_t count)
 {
+	if(virtual >= PHYSICAL_MEMORY)
+		return;
+
 	vmm_map(virtual, 0, count, 0);
 }
 
