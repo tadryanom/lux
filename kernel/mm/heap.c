@@ -18,11 +18,11 @@ void *kmalloc(size_t size)
 
 	size_t pages = (size + HEAP_ALIGNMENT + PAGE_SIZE - 1) >> PAGE_SIZE_SHIFT;
 
-	void *ptr = (void*)vmm_alloc(KERNEL_HEAP, pages, PAGE_PRESENT | PAGE_RW);
+	void *ptr = (void*)(vmm_alloc(KERNEL_HEAP, pages, PAGE_PRESENT | PAGE_RW));
 	if(!ptr)
 		return NULL;
 
-	size_t *header = (size_t*)ptr;
+	size_t *header = (size_t*)(ptr);
 	header[0] = pages;		// store number of pages
 	header[1] = size;		// store number of bytes
 

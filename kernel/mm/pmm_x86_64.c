@@ -35,14 +35,14 @@ void pmm_init(multiboot_info_t *multiboot_info)
 	}
 
 	// we have to have at least 64 MB contiguous
-	if(multiboot_info->mem_upper < 65536)
+	/*if(multiboot_info->mem_upper < 65536)
 	{
 		kprintf("boot error: too little memory present.\n");
 		while(1);
-	}
+	}*/
 
 	// create a bitmap at 32 MB
-	pmm_bitmap = (uint8_t*)0x2000000;
+	pmm_bitmap = (uint8_t*)(0x2000000);
 	memset(pmm_bitmap, 0, PMM_BITMAP_SIZE);
 
 	// and start!
@@ -52,17 +52,21 @@ void pmm_init(multiboot_info_t *multiboot_info)
 	total_memory = 0;
 	usable_memory = 0;
 
-	kprintf("pmm: showing E820 memory map:\n");
+	kprintf("pmm: showing BIOS-provided memory map:\n");
 	kprintf(" STARTING ADDRESS - ENDING ADDRESS   - TYPE\n");
 
-	e820_entry_t *mmap = (e820_entry_t*)(multiboot_info->mmap_addr);
-	e820_entry_t *mmap_end = (e820_entry_t*)(multiboot_info->mmap_addr + multiboot_info->mmap_length);
+	size_t mmap = (size_t)multiboot_info->mmap_addr & 0xFFFFFFFF;
+	e820_entry_t *mmap_ptr = (e820_entry_t*)mmap;
+	uint32_t count = 0;
 
-	while(mmap < mmap_end)
+	while(count < multiboot_info->mmap_length)
 	{
-		kprintf(" %xq - %xq - ", mmap->base, mmap->base + mmap->length);
+		if(mmap_ptr->size < 20)
+			break;
 
-		switch(mmap->type)
+		kprintf(" %xq - %xq - ", mmap_ptr->base, mmap_ptr->base + mmap_ptr->length);
+
+		switch(mmap_ptr->type)
 		{
 		case E820_USABLE:
 			kprintf("usable RAM");
@@ -92,10 +96,13 @@ void pmm_init(multiboot_info_t *multiboot_info)
 		kprintf("\n");
 
 		// add to the list
-		pmm_add_range(mmap);
+		pmm_add_range(mmap_ptr);
 
 		// go on...
-		mmap = (e820_entry_t*)((uint32_t)mmap + mmap->size + 4);
+		mmap += (size_t)(mmap_ptr->size + 4);
+		count += mmap_ptr->size + 4;
+
+		mmap_ptr = (e820_entry_t*)mmap;
 	}
 
 	kprintf("pmm: total of %d MB memory, of which %d MB are usable.\n", (uint32_t)total_memory/ 1024/1024, (uint32_t)usable_memory/1024/1024);

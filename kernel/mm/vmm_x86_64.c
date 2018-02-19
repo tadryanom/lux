@@ -43,7 +43,7 @@ size_t vmm_get_page(size_t page)
 	pdpt &= (~(PAGE_SIZE-1));
 	pdpt += PHYSICAL_MEMORY;
 
-	size_t *pdpt_ptr = (size_t*)pdpt;
+	size_t *pdpt_ptr = (size_t*)(pdpt);
 
 	size_t pdir = pdpt_ptr[(page >> 30) & 511];	// 1 GB per each PDPT entry
 	if((pdir & PAGE_PRESENT) == 0)
@@ -53,7 +53,7 @@ size_t vmm_get_page(size_t page)
 	pdir &= (~(PAGE_SIZE-1));
 	pdir += PHYSICAL_MEMORY;
 
-	size_t *pdir_ptr = (size_t*)pdir;
+	size_t *pdir_ptr = (size_t*)(pdir);
 
 	size_t ptbl = pdir_ptr[(page >> 21) & 511];	// 2 MB per each page directory entry
 	if((ptbl & PAGE_PRESENT) == 0)
@@ -67,7 +67,7 @@ size_t vmm_get_page(size_t page)
 	ptbl &= (~(PAGE_SIZE-1));
 	ptbl += PHYSICAL_MEMORY;
 
-	size_t *ptbl_ptr = (size_t*)ptbl;
+	size_t *ptbl_ptr = (size_t*)(ptbl);
 
 	return ptbl_ptr[(page >> PAGE_SIZE_SHIFT) & 511];
 }
@@ -93,7 +93,7 @@ void vmm_map_page(size_t virtual, size_t physical, uint8_t flags)
 	// determine which page directory has the page
 	pdpt &= (~(PAGE_SIZE-1));
 	pdpt += PHYSICAL_MEMORY;
-	size_t *pdpt_ptr = (size_t*)pdpt;
+	size_t *pdpt_ptr = (size_t*)(pdpt);
 
 	size_t pdir = pdpt_ptr[(virtual >> 30) & 511];
 	if((pdir & PAGE_PRESENT) == 0)
@@ -107,7 +107,7 @@ void vmm_map_page(size_t virtual, size_t physical, uint8_t flags)
 	// determine which page table has the page
 	pdir &= (~(PAGE_SIZE-1));
 	pdir += PHYSICAL_MEMORY;
-	size_t *pdir_ptr = (size_t*)pdir;
+	size_t *pdir_ptr = (size_t*)(pdir);
 
 	size_t ptbl = pdir_ptr[(virtual >> 21) & 511];
 	if((ptbl & PAGE_PRESENT) == 0)
@@ -122,7 +122,7 @@ void vmm_map_page(size_t virtual, size_t physical, uint8_t flags)
 	ptbl &= (~(PAGE_SIZE-1));
 	ptbl += PHYSICAL_MEMORY;
 
-	size_t *ptbl_ptr = (size_t*)ptbl;
+	size_t *ptbl_ptr = (size_t*)(ptbl);
 	ptbl_ptr[(virtual >> PAGE_SIZE_SHIFT) & 511] = physical | flags;
 }
 

@@ -1,6 +1,6 @@
 
 	CC=clang
-	CFLAGS=-fno-builtin -ffreestanding -fomit-frame-pointer -nostdlib -nodefaultlibs -O2 -msse2
+	CFLAGS=-Wall -fno-builtin -ffreestanding -fomit-frame-pointer -nostdlib -nodefaultlibs -O2 -msse2
 	CFILES=kernel/*.c kernel/*/*.c
 	OBJECTS=*.o
 
@@ -28,7 +28,7 @@ lux64:
 	fasm kernel/asm_x86_64/cpu.asm cpu.o
 	fasm kernel/asm_x86_64/sse2.asm sse2.o
 
-	$(CC) $(CFLAGS) -target x86_64-pc-none -mno-red-zone -mcmodel=large -Ikernel/include -c $(CFILES)
+	$(CC) $(CFLAGS) -target x86_64-pc-none -m64 -mno-red-zone -mcmodel=large -Ikernel/include -c $(CFILES)
 
 	ld -melf_x86_64 -nostdlib -nodefaultlibs -O2 -T kernel/ld_x86_64.ld $(OBJECTS) -o kernel64.sys
 

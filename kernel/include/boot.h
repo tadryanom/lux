@@ -33,7 +33,7 @@ typedef struct multiboot_info_t
 	uint32_t syms[4];
 	uint32_t mmap_length;
 	uint32_t mmap_addr;
-} multiboot_info_t;
+}__attribute__((packed)) multiboot_info_t;
 
 typedef struct e820_entry_t
 {

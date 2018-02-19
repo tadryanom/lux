@@ -13,7 +13,7 @@
 
 uint16_t width, height, pitch;
 uint16_t width_chars, height_chars;
-uint32_t framebuffer;
+size_t framebuffer;
 size_t screen_size, screen_size_dwords, screen_size_sse2;
 size_t back_buffer;
 tty_t *ttys;
@@ -34,12 +34,13 @@ void screen_init(vbe_mode_t *vbe_info)
 	width = vbe_info->width;
 	height = vbe_info->height;
 	pitch = vbe_info->pitch;
-	framebuffer = vbe_info->framebuffer;
+
+	framebuffer = (size_t)(vbe_info->framebuffer & 0xFFFFFFFF) & 0xFFFFFFFF;
 
 	width_chars = (width / 8) - 1;
 	height_chars = (height / 16) - 1;
 
-	screen_size = height*pitch;
+	screen_size = (size_t)((height*pitch) & 0xFFFFFFFF) & 0xFFFFFFFF;
 	screen_size_dwords = screen_size / 4;
 
 	// for SSE2 copying, because we have 8 SSE registers ...
@@ -68,8 +69,8 @@ void screen_init(vbe_mode_t *vbe_info)
 	}
 
 	debug_mode = 1;
-	tty_switch(0);
 	screen_unlock();
+	tty_switch(0);
 }
 
 // screen_redraw(): Redraws the screen
@@ -81,7 +82,7 @@ inline void screen_redraw()
 	if(lock_flag != 0)
 		return;
 
-	sse2_copy((void*)HW_FRAMEBUFFER, (void*)SW_FRAMEBUFFER, screen_size_sse2);
+	sse2_copy((void*)(HW_FRAMEBUFFER), (void*)(SW_FRAMEBUFFER), screen_size_sse2);
 }
 
 // screen_offset(): Returns offset of a pixel
@@ -91,7 +92,8 @@ inline void screen_redraw()
 
 void *screen_offset(uint16_t x, uint16_t y)
 {
-	void *ptr = (void*)(y * pitch) + (x << 2);	// x * 4
+	size_t return_ptr = ((size_t)(y * pitch) + (x << 2));
+	void *ptr = (void*)(return_ptr & 0xFFFFFFFF);
 	return ptr + SW_FRAMEBUFFER;
 }
 
@@ -119,7 +121,7 @@ inline void screen_unlock()
 
 void screen_clear(uint32_t color)
 {
-	uint32_t *screen = (uint32_t*)SW_FRAMEBUFFER;
+	uint32_t *screen = (uint32_t*)(SW_FRAMEBUFFER);
 
 	size_t i = 0;
 	while(i < screen_size_dwords)
@@ -142,9 +144,9 @@ void screen_clear(uint32_t color)
 void screen_drawch(char character, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg)
 {
 	void *ptr = screen_offset(x, y);
-	uint32_t *pixels = (uint32_t*)ptr;
+	uint32_t *pixels = (uint32_t*)(ptr);
 
-	uint8_t *font = bootfont + ((int)character << 4);
+	uint8_t *font = bootfont + ((int)(character & 0xFF) << 4);
 	uint8_t fontbyte = font[0];
 
 	int i = 0, j = 0;
@@ -166,7 +168,7 @@ void screen_drawch(char character, uint16_t x, uint16_t y, uint32_t fg, uint32_t
 		fontbyte = font[j];
 
 		ptr += pitch;
-		pixels = (uint32_t*)ptr;
+		pixels = (uint32_t*)(ptr);
 		i = 0;
 	}
 }
@@ -181,7 +183,7 @@ void screen_drawch(char character, uint16_t x, uint16_t y, uint32_t fg, uint32_t
 void screen_drawch_transparent(char character, uint16_t x, uint16_t y, uint32_t fg)
 {
 	void *ptr = screen_offset(x, y);
-	uint32_t *pixels = (uint32_t*)ptr;
+	uint32_t *pixels = (uint32_t*)(ptr);
 
 	uint8_t *font = bootfont + ((int)character << 4);
 	uint8_t fontbyte = font[0];
@@ -203,7 +205,7 @@ void screen_drawch_transparent(char character, uint16_t x, uint16_t y, uint32_t 
 		fontbyte = font[j];
 
 		ptr += pitch;
-		pixels = (uint32_t*)ptr;
+		pixels = (uint32_t*)(ptr);
 		i = 0;
 	}
 }
@@ -302,7 +304,7 @@ void screen_fill_rect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, u
 		return;
 
 	void *ptr = screen_offset(x, y);
-	uint32_t *pixels = (uint32_t*)ptr;
+	uint32_t *pixels = (uint32_t*)(ptr);
 
 	uint16_t i = 0, j = 0;
 
@@ -315,7 +317,7 @@ void screen_fill_rect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, u
 		}
 
 		ptr += pitch;
-		pixels = (uint32_t*)ptr;
+		pixels = (uint32_t*)(ptr);
 
 		i = 0;
 		j++;
@@ -466,7 +468,8 @@ void tty_put(char character, size_t tty)
 
 	acquire_lock(&tty_mutex);
 
-	char *buffer = (char*)ttys[tty].buffer + (ttys[tty].y_pos * width_chars) + ttys[tty].x_pos;
+	size_t buffer_offset = (size_t)((ttys[tty].y_pos * width_chars) + ttys[tty].x_pos) & 0xFFFFFFFF;
+	char *buffer = (char*)(ttys[tty].buffer + buffer_offset);
 
 	//buffer[0] = character;
 

@@ -28,6 +28,8 @@ void com1_send(char *);
 
 void kprint_init()
 {
+	debug_mode = 0;
+
 	// read the serial port base
 	uint16_t *ptr = (uint16_t*)0x400;
 	com1_base = ptr[0];
