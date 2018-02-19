@@ -11,10 +11,10 @@
 #include <string.h>	// memcpy
 #include <cpu.h>
 #include <gdt.h>
+#include <idt.h>
 
 int smp_boot_ap(size_t);
 void smp_wait();
-void smp_register_cpu(size_t);
 
 size_t current_ap;		// this will tell the APs which index they are
 uint8_t ap_flag;		// this will tell the BSP if the AP started up
@@ -26,6 +26,8 @@ uint8_t ap_flag;		// this will tell the BSP if the AP started up
 void smp_init()
 {
 	kprintf("smp: total of %d usable CPUs present.\n", lapic_count);
+
+	idt_install(0xFF, (size_t)&lapic_spurious_stub);
 
 	// register the bsp
 	smp_register_cpu(0);
@@ -42,6 +44,12 @@ void smp_init()
 	size_t i = 0;
 	for(i = 0; i < lapic_count; i++)
 		smp_boot_ap(i);
+
+	// all AP local APICs are initialized to logical APIC mode & spurious IRQs
+	// we couldn't do the same for the BSP because we're using it to start
+	// APs, so we need physical mode - but now we can properly initialize the
+	// BSP's local APIC
+	lapic_init();
 }
 
 // smp_wait(): Waits for IPIs to be sent
@@ -105,20 +113,11 @@ int smp_boot_ap(size_t ap)
 
 void smp_kmain()
 {
-	// for 32-bit, we need to enable paging because the trampoline code
-	// doesn't do it. But for 64-bit, it has to because paging is always
-	// enabled in long mode.
-
-#if __i386__
-	write_cr3((uint32_t)page_directory);
-	uint32_t cr0 = read_cr0();
-	cr0 |= 0x80000000;
-	cr0 &= ~0x60000000;		// caching
-	write_cr0(cr0);
-#endif
-
 	kprintf("smp: CPU index %d started up.\n", current_ap);
 	smp_register_cpu(current_ap);
+
+	lapic_init();
+
 	ap_flag = 1;
 
 	while(1)

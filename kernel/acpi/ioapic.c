@@ -8,6 +8,9 @@
 #include <apic.h>
 #include <kprintf.h>
 #include <pic.h>
+#include <mm.h>
+#include <devmgr.h>
+#include <irq.h>
 
 void ioapic_init_controller(size_t, uint8_t);
 void ioapic_write_irq(size_t, uint8_t, uint64_t);
@@ -87,6 +90,14 @@ void ioapic_init()
 void ioapic_init_controller(size_t index, uint8_t base)
 {
 	kprintf("ioapic[%d]: initialize I/O APIC with interrupt range 0x%xb-0x%xb\n", index, base, base + ioapics[index].irq_count);
+
+	device_t *device = kmalloc(sizeof(device_t));
+	device->category = DEVMGR_CATEGORY_SYSTEM;
+	device->mmio[0].base = (uint64_t)vmm_get_page(ioapics[index].base) & (~(PAGE_SIZE-1));
+	device->mmio[0].size = 0xFFF;		// is the I/O APIC MMIO always one page?
+	devmgr_register(device, "I/O APIC");
+	kfree(device);
+
 	size_t i = 0;
 	while(i < ioapics[index].irq_count)
 	{
@@ -165,13 +176,103 @@ void ioapic_unmask(uint8_t gsi)
 
 	// determine the interrupt number of this specific IRQ
 	uint8_t irq = (uint8_t)gsi - ioapics[ioapic].gsi;
-	kprintf("ioapic[%d]: unmask IRQ line %d\n", ioapic, (int)irq);
+	kprintf("ioapic[%d]: unmask IRQ line %d\n", ioapic, irq);
 
 	uint64_t value = ioapic_read_irq(ioapic, irq);
 	value &= ~IOAPIC_MASK;
 	ioapic_write_irq(ioapic, irq, value);
 }
 
+// ioapic_configure(): Configures an I/O APIC IRQ according to MADT, etc.
+// Param:	uint8_t gsi - GSI IRQ line
+// Param:	uint8_t flags - IRQ configuration
+// Return:	uint8_t - GSI IRQ line, may be changed for ISA IRQs
 
+uint8_t ioapic_configure(uint8_t gsi, uint8_t flags)
+{
+	uint8_t broadcast = (flags >> 7) & 1;
+
+	// if it's an ISA IRQ being delivered via the I/O APIC, we ignore
+	// the flags and follow the MADT; if there's no override we assume
+	// the default: active-high, edge-triggered.
+	if(gsi < 15)
+	{
+		flags = IRQ_ACTIVE_HIGH | IRQ_EDGE;	// the default for ISA
+
+		// find out the real GSI
+		size_t override = 0;
+		while(overrides[override].present == 1)
+		{
+			if(overrides[override].irq == gsi)
+			{
+				gsi = (uint8_t)overrides[override].gsi & 0xFF;
+				flags = overrides[override].flags;
+				break;
+			} else
+			{
+				override++;
+			}
+		}
+	}
+
+	// figure out which I/O APIC has this GSI
+	size_t ioapic = 0;
+	while(gsi < ioapics[ioapic].gsi || gsi > (ioapics[ioapic].gsi + ioapics[ioapic].irq_count))
+	{
+		ioapic++;
+		if(ioapics[ioapic].present != 1)
+		{
+			kprintf("ioapic: attempted to configure GSI %d on non-present I/O APIC.\n", gsi);
+			return 0xFF;
+		}
+	}
+
+	// determine the interrupt line of this specific IRQ
+	uint8_t irq = (uint8_t)gsi - ioapics[ioapic].gsi;
+
+	// and fly!
+	uint64_t value = ioapic_read_irq(ioapic, irq);
+
+	if(flags & IRQ_ACTIVE_LOW)
+		value |= IOAPIC_ACTIVE_LOW;
+	else
+		value &= ~IOAPIC_ACTIVE_LOW;
+
+	if(flags & IRQ_LEVEL)
+		value |= IOAPIC_LEVEL;
+	else
+		value &= ~IOAPIC_LEVEL;
+
+	if(lapic_count > 1)
+	{
+		if(broadcast == 1)
+		{
+			value |= IOAPIC_LOGICAL;
+			value |= ((uint64_t)LAPIC_CLUSTER_ID << 56);
+		} else
+		{
+			value &= ~IOAPIC_LOGICAL;
+			value &= ~((uint64_t)0xFF << 56);
+		}
+	} else
+	{
+		value &= ~IOAPIC_LOGICAL;
+		value &= ~((uint64_t)0xFF << 56);
+	}
+
+	ioapic_write_irq(ioapic, irq, value);
+	kprintf("ioapic[%d]: configured IRQ line %d: ", ioapic, irq);
+	if(flags & IRQ_LEVEL)
+		kprintf("level ");
+	else
+		kprintf("edge ");
+
+	if(flags & IRQ_ACTIVE_LOW)
+		kprintf("low\n");
+	else
+		kprintf("high\n");
+
+	return gsi;
+}
 
 

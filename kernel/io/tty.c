@@ -10,6 +10,7 @@
 #include <tty.h>
 #include <string.h>
 #include <lock.h>
+#include <devmgr.h>
 
 uint16_t width, height, pitch;
 uint16_t width_chars, height_chars;
@@ -71,6 +72,14 @@ void screen_init(vbe_mode_t *vbe_info)
 	debug_mode = 1;
 	screen_unlock();
 	tty_switch(0);
+
+	device_t *device = kmalloc(sizeof(device_t));
+	device->category = DEVMGR_CATEGORY_GRAPHICS;
+	device->mmio[0].base = (uint64_t)framebuffer;
+	device->mmio[0].size = (uint64_t)screen_size;
+	devmgr_register(device, "VESA framebuffer");
+
+	kfree(device);
 }
 
 // screen_redraw(): Redraws the screen

@@ -6,7 +6,8 @@
 
 #include <boot.h>
 #include <kprintf.h>
-#include <time.h>
+#include <devmgr.h>
+#include <timer.h>
 #include <mm.h>
 #include <gdt.h>
 #include <tty.h>
@@ -21,11 +22,14 @@ void kmain(uint32_t multiboot_magic, multiboot_info_t *multiboot_info, vbe_mode_
 		kprintf("warning: invalid multiboot magic; taking a risk and continuing...\n");
 
 	mm_init(multiboot_info);
+	devmgr_init();
 	screen_init(vbe_mode);
 	gdt_init();
 	install_exceptions();
 	acpi_init();
 	apic_init();
+	timer_init();
+	devmgr_dump();
 
 	while(1)
 		asm volatile ("sti\nhlt");

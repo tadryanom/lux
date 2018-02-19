@@ -11,6 +11,7 @@ lux32:
 	fasm kernel/asm_i386/state.asm state.o
 	fasm kernel/asm_i386/cpu.asm cpu.o
 	fasm kernel/asm_i386/sse2.asm sse2.o
+	fasm kernel/asm_i386/irq_stub.asm irq_stub.o
 
 	$(CC) $(CFLAGS) -target i386-pc-none -Ikernel/include -c $(CFILES)
 
@@ -27,6 +28,7 @@ lux64:
 	fasm kernel/asm_x86_64/state.asm state.o
 	fasm kernel/asm_x86_64/cpu.asm cpu.o
 	fasm kernel/asm_x86_64/sse2.asm sse2.o
+	fasm kernel/asm_x86_64/irq_stub.asm irq_stub.o
 
 	$(CC) $(CFLAGS) -target x86_64-pc-none -m64 -mno-red-zone -mcmodel=large -Ikernel/include -c $(CFILES)
 

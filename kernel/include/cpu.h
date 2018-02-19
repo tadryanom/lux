@@ -28,6 +28,7 @@ typedef struct cpu_t
 	size_t index;
 	void *stack;
 	uint64_t timestamp;
+	uint32_t spurious;		// count of local APIC spurious IRQs
 	size_t process_count;
 	pid_t current_pid;
 } cpu_t;

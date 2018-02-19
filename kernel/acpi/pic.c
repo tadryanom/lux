@@ -8,6 +8,11 @@
 #include <io.h>
 #include <pic.h>
 #include <apic.h>
+#include <mm.h>
+#include <devmgr.h>
+#include <idt.h>
+
+uint32_t master_spurious = 0, slave_spurious = 0;
 
 // pic_init(): Initializes the PICs
 // Param:	uint8_t base - base of interrupts
@@ -59,6 +64,21 @@ void pic_init(uint8_t base)
 
 	// unmask the cascade to allow IRQs from the slave PIC
 	pic_unmask(2);
+
+	// spurious IRQ handlers
+	idt_install(base + 7, (size_t)&pic0_spurious_stub);
+	idt_install(base + 15, (size_t)&pic1_spurious_stub);
+
+	// register the device
+	device_t *device = kmalloc(sizeof(device_t));
+	device->category = DEVMGR_CATEGORY_SYSTEM;
+	device->io[0].base = 0x20;
+	device->io[0].size = 2;
+	device->io[1].base = 0xA0;
+	device->io[1].size = 2;
+	devmgr_register(device, "8259 PIC");
+
+	kfree(device);
 }
 
 // pic_mask(): Masks an IRQ
@@ -124,6 +144,30 @@ void pic_eoi(uint8_t irq)
 
 	outb(0x20, 0x20);
 }
+
+// void pic0_spurious(): Master PIC spurious IRQ handler
+// Param:	Nothing
+// Return:	Nothing
+
+void pic0_spurious()
+{
+	master_spurious++;
+	kprintf("pic: spurious IRQ on master PIC, total count %d\n", master_spurious);
+}
+
+// void pic1_spurious(): Slave PIC spurious IRQ handler
+// Param:	Nothing
+// Return:	Nothing
+
+void pic1_spurious()
+{
+	slave_spurious++;
+	kprintf("pic: spurious IRQ on slave PIC, total count %d\n", slave_spurious);
+
+	outb(0x20, 0x20);	// EOI the master chip
+}
+
+
 
 
 

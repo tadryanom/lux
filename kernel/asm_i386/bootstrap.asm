@@ -176,6 +176,25 @@ use32
 	finit
 	fwait
 
+	; paging
+	extrn page_directory
+	mov eax, [page_directory]
+	mov cr3, eax
+
+	mov eax, cr0
+	or eax, 0x80000000
+	and eax, not 0x60000000
+	mov cr0, eax
+
+	; allocate temporary stack
+	extrn kmalloc
+	push 8192
+	mov eax, kmalloc
+	call eax
+
+	mov esp, eax
+	add esp, 8192
+
 	extrn smp_kmain
 	jmp 0x08:smp_kmain
 

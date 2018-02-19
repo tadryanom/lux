@@ -39,6 +39,7 @@
 #define IOAPIC_ARBITRATION	0x02
 #define IOAPIC_IRQ_TABLE	0x10
 
+#define IOAPIC_LOGICAL		0x800
 #define IOAPIC_ACTIVE_LOW	0x2000
 #define IOAPIC_LEVEL		0x8000
 #define IOAPIC_MASK		0x10000
@@ -48,12 +49,18 @@
 #define LAPIC_VERSION		0x030
 #define LAPIC_TASK_PRIORITY	0x080
 #define LAPIC_EOI		0x0B0
+#define LAPIC_LDR		0x0D0	// logical destination register
+#define LAPIC_DFR		0x0E0	// destination format register
 #define LAPIC_SPURIOUS_IRQ	0x0F0
 #define LAPIC_COMMAND		0x300
 #define LAPIC_COMMAND_ID	0x310
 #define LAPIC_TIMER_INIT_COUNT	0x380
 #define LAPIC_TIMER_CURR_COUNT	0x390
 #define LAPIC_TIMER_DIVIDE	0x3E0
+
+// This can be an arbitrary number, we'll use this to represent "all CPUs"
+// but 0xFF is a good number because we're after all, it's a broadcast
+#define LAPIC_CLUSTER_ID	0xFF
 
 // Structures...
 
@@ -117,7 +124,7 @@ typedef struct irq_override_t
 	uint8_t irq;
 	uint8_t bus;
 	uint32_t gsi;
-	uint16_t flags;
+	uint8_t flags;
 } irq_override_t;
 
 acpi_madt_t *madt;
@@ -142,12 +149,17 @@ void ioapic_write(size_t, uint32_t, uint32_t);
 void ioapic_init();
 void ioapic_mask(uint8_t);
 void ioapic_unmask(uint8_t);
+uint8_t ioapic_configure(uint8_t, uint8_t);
 
 uint32_t lapic_read(size_t);
 void lapic_write(size_t, uint32_t);
+uint8_t lapic_get_id();
+void lapic_init();
 void lapic_eoi();
+extern void lapic_spurious_stub();
 
 void smp_init();
+void smp_register_cpu(size_t);
 extern char trampoline16[];
 extern uint16_t trampoline16_size[];
 

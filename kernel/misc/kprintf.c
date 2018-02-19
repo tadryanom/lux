@@ -8,7 +8,7 @@
 #include <kprintf.h>
 #include <string.h>
 #include <io.h>
-#include <time.h>
+#include <timer.h>
 #include <va_list.h>	// for formatting
 #include <tty.h>
 #include <lock.h>

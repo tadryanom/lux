@@ -9,6 +9,8 @@
 #include <pic.h>
 #include <mm.h>
 #include <kprintf.h>
+#include <devmgr.h>
+#include <irq.h>
 
 acpi_madt_t *madt;
 char irq_mode = 0;
@@ -39,7 +41,12 @@ void apic_init()
 		kprintf("apic: ACPI MADT not present, using one CPU and legacy PIC for IRQs.\n");
 		irq_mode = IRQ_PIC;
 		pic_init(IRQ_BASE);
-		return;
+
+		// we have no APICs, but at least pretend we have a BSP local APIC
+		lapics[0].present = 1;
+		lapics[0].apic_id = 0;
+		lapic_count = 1;
+		smp_register_cpu(0);
 	}
 
 	apic_parse();
@@ -68,6 +75,15 @@ void apic_parse()
 {
 	kprintf("apic: local APIC is at 0x%xd\n", madt->local_apic);
 	kprintf("apic: MADT flags = 0x%xd\n", madt->flags);
+
+	// register the local APIC
+	device_t *lapic_device = kmalloc(sizeof(device_t));
+	lapic_device->category = DEVMGR_CATEGORY_SYSTEM;
+	lapic_device->mmio[0].base = (uint64_t)madt->local_apic;
+	lapic_device->mmio[0].size = (uint64_t)0xFFF;	// question: is the local APIC MMIO always one page long?
+	devmgr_register(lapic_device, "Local APIC");
+
+	kfree(lapic_device);
 
 	lapic_base = (void*)vmm_request_map(madt->local_apic, 2, PAGE_PRESENT | PAGE_RW | PAGE_UNCACHEABLE);
 
@@ -166,7 +182,17 @@ void apic_register_override(madt_override_t *data)
 	overrides[override_count].bus = data->bus;
 	overrides[override_count].irq = data->irq;
 	overrides[override_count].gsi = data->gsi;
-	overrides[override_count].flags = data->flags;
+	//overrides[override_count].flags = data->flags;
+
+	if(data->flags & MADT_IRQ_ACTIVE_LOW)
+		overrides[override_count].flags = IRQ_ACTIVE_LOW;
+	else
+		overrides[override_count].flags = IRQ_ACTIVE_HIGH;
+
+	if(data->flags & MADT_IRQ_LEVEL)
+		overrides[override_count].flags |= IRQ_LEVEL;
+	else
+		overrides[override_count].flags |= IRQ_EDGE;
 
 	kprintf("apic: override IRQ %d bus %d GSI %d flags 0x%xw (", data->irq, data->bus, data->gsi, data->flags);
 

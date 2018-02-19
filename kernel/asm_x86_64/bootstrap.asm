@@ -130,6 +130,14 @@ times 512 - ($-trampoline16) db 0
 	finit
 	fwait
 
+	extrn kmalloc
+	mov rdi, 16384		; temporary stack
+	mov rax, kmalloc
+	call rax
+
+	mov rsp, rax
+	add rsp, 16384
+
 	extrn smp_kmain
 	mov rax, smp_kmain
 	jmp rax
