@@ -47,6 +47,7 @@ void apic_init()
 		lapics[0].apic_id = 0;
 		lapic_count = 1;
 		smp_register_cpu(0);
+		return;
 	}
 
 	apic_parse();

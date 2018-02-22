@@ -31,8 +31,9 @@ void kprint_init()
 	debug_mode = 0;
 
 	// read the serial port base
-	uint16_t *ptr = (uint16_t*)0x400;
-	com1_base = ptr[0];
+	/*uint16_t *ptr = (uint16_t*)0x400;
+	com1_base = ptr[0];*/
+	com1_base = 0;
 
 	if(com1_base == 0)
 		return;			// no serial port
