@@ -9,6 +9,7 @@
 #include <irq.h>
 #include <devmgr.h>
 #include <mm.h>
+#include <io.h>
 
 #define PIT_DIVIDER			1193182
 
@@ -19,6 +20,16 @@
 void pit_init()
 {
 	kprintf("pit: using the PIT as a timer.\n");
+
+	// set frequency and mode
+	uint16_t divider = PIT_DIVIDER / TIMER_FREQUENCY;
+
+	outb(0x43, 0x36);
+	iowait();
+	outb(0x40, (uint8_t)divider & 0xFF);
+	iowait();
+	outb(0x40, (uint8_t)(divider >> 8) & 0xFF);
+	iowait();
 
 	// broadcast the IRQ to all CPUs
 	timer_irq_line = irq_configure(0, IRQ_BROADCAST);

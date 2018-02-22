@@ -80,8 +80,8 @@ inline void lapic_eoi()
 void lapic_spurious()
 {
 	cpu_t FS_BASE *cpu = (cpu_t FS_BASE*)0;
-	cpu->spurious++;
-	kprintf("lapic: spurious IRQ on CPU index %d, total count %d\n", cpu->index, cpu->spurious);
+	cpu->spurious_count++;
+	kprintf("lapic: spurious IRQ on CPU index %d, total count %d\n", cpu->index, cpu->spurious_count);
 }
 
 

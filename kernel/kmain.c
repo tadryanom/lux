@@ -13,6 +13,10 @@
 #include <tty.h>
 #include <acpi.h>
 #include <apic.h>
+#include <ps2.h>
+#include <vfs.h>
+#include <tasking.h>
+#include <time.h>
 
 void kmain(uint32_t multiboot_magic, multiboot_info_t *multiboot_info, vbe_mode_t *vbe_mode)
 {
@@ -29,7 +33,12 @@ void kmain(uint32_t multiboot_magic, multiboot_info_t *multiboot_info, vbe_mode_
 	acpi_init();
 	apic_init();
 	timer_init();
-	devmgr_dump();
+	tasking_init();
+	vfs_init();
+	//ps2_init();
+	//devmgr_dump();
+
+	kprintf("Current Unix time is: %d\n", get_time());
 
 	while(1)
 		asm volatile ("sti\nhlt");

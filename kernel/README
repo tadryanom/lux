@@ -8,6 +8,7 @@ The source code is organized in several directories in a simple manner.
 	asm_i386/		i386-specific code in assembly.
 	asm_x86_64/		x86_64-specific code in assembly.
 	firmware/		Firmware device drivers, PIT, HPET, etc.
+	fs/			Filesystem and VFS implementations.
 	io/			I/O device drivers, keyboard, tty, etc.
 	mm/			Memory management.
 	misc/			Things that don't fit into any other category.

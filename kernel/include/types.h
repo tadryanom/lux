@@ -23,11 +23,11 @@ typedef unsigned long long uint64_t;
 typedef int32_t pid_t;
 
 #if __x86_64__
-typedef uint64_t size_t;
+typedef unsigned long long size_t;
 #endif
 
 #if __i386__
-typedef uint32_t size_t;
+typedef unsigned int size_t;
 #endif
 
 extern void *kend;

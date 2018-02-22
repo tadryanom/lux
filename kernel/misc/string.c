@@ -4,7 +4,7 @@
  * copyright (c) 2018 by Omar Mohammad
  */
 
-#include <types.h>
+#include <string.h>
 
 // memmove: Moves memory carefully, slow function
 // Param:	void *dest - destination
@@ -196,6 +196,19 @@ int memcmp(const void *ptr1, const void *ptr2, size_t num)
 
 	return 0;
 }
+
+// strcpy(): Copies a string
+// Param:	char *s1 - destination
+// Param:	const char *s2 - source
+// Return:	char * - pointer to destination
+
+char *strcpy(char *s1, const char *s2)
+{
+	memcpy(s1, s2, strlen(s2) + 1);
+	return s1;
+}
+
+
 
 
 

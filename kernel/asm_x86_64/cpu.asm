@@ -55,18 +55,21 @@ read_cr4:
 ; void flush_tlb(size_t base, size_t count)
 public flush_tlb
 flush_tlb:
-	mov rax, rdi
+	pushfq
+	cli
+
 	mov rcx, rsi
 
 	cmp rcx, 0
 	je .done
 
 .loop:
-	invlpg [rax]
-	add rax, 4096
+	invlpg [rdi]
+	add rdi, 4096
 	loop .loop
 
 .done:
+	popfq
 	ret
 
 ; void acquire_lock(lock_t *)
@@ -144,7 +147,7 @@ divide_handler:
 	mov rdi, divide_text
 	call exception_handler
 
-	iret
+	iretq
 
 public debug_handler
 debug_handler:
@@ -152,7 +155,7 @@ debug_handler:
 	mov rdi, debug_text
 	call exception_handler
 
-	iret
+	iretq
 
 public nmi_handler
 nmi_handler:
@@ -160,7 +163,7 @@ nmi_handler:
 	mov rdi, nmi_text
 	call exception_handler
 
-	iret
+	iretq
 
 public breakpoint_handler
 breakpoint_handler:
@@ -168,7 +171,7 @@ breakpoint_handler:
 	mov rdi, breakpoint_text
 	call exception_handler
 
-	iret
+	iretq
 
 public overflow_handler
 overflow_handler:
@@ -176,7 +179,7 @@ overflow_handler:
 	mov rdi, overflow_text
 	call exception_handler
 
-	iret
+	iretq
 
 public bound_handler
 bound_handler:
@@ -184,7 +187,7 @@ bound_handler:
 	mov rdi, bound_text
 	call exception_handler
 
-	iret
+	iretq
 
 public opcode_handler
 opcode_handler:
@@ -192,7 +195,7 @@ opcode_handler:
 	mov rdi, opcode_text
 	call exception_handler
 
-	iret
+	iretq
 
 public device_handler
 device_handler:
@@ -200,7 +203,7 @@ device_handler:
 	mov rdi, device_text
 	call exception_handler
 
-	iret
+	iretq
 
 public double_handler
 double_handler:
@@ -208,7 +211,7 @@ double_handler:
 	mov rdi, double_text
 	call exception_handler
 
-	iret
+	iretq
 
 public coprocessor_handler
 coprocessor_handler:
@@ -216,7 +219,7 @@ coprocessor_handler:
 	mov rdi, coprocessor_text
 	call exception_handler
 
-	iret
+	iretq
 
 public tss_handler
 tss_handler:
@@ -224,7 +227,7 @@ tss_handler:
 	mov rdi, tss_text
 	call exception_handler
 
-	iret
+	iretq
 
 public segment_handler
 segment_handler:
@@ -232,7 +235,7 @@ segment_handler:
 	mov rdi, segment_text
 	call exception_handler
 
-	iret
+	iretq
 
 public stack_handler
 stack_handler:
@@ -240,7 +243,7 @@ stack_handler:
 	mov rdi, stack_text
 	call exception_handler
 
-	iret
+	iretq
 
 public gpf_handler
 gpf_handler:
@@ -248,7 +251,7 @@ gpf_handler:
 	mov rdi, gpf_text
 	call exception_handler
 
-	iret
+	iretq
 
 public page_handler
 page_handler:
@@ -256,7 +259,7 @@ page_handler:
 	mov rdi, page_text
 	call exception_handler
 
-	iret
+	iretq
 
 public reserved_handler
 reserved_handler:
@@ -264,7 +267,7 @@ reserved_handler:
 	mov rdi, reserved_text
 	call exception_handler
 
-	iret
+	iretq
 
 public floating_handler
 floating_handler:
@@ -272,7 +275,7 @@ floating_handler:
 	mov rdi, floating_text
 	call exception_handler
 
-	iret
+	iretq
 
 public alignment_handler
 alignment_handler:
@@ -280,7 +283,7 @@ alignment_handler:
 	mov rdi, alignment_text
 	call exception_handler
 
-	iret
+	iretq
 
 public machine_handler
 machine_handler:
@@ -288,7 +291,7 @@ machine_handler:
 	mov rdi, machine_text
 	call exception_handler
 
-	iret
+	iretq
 
 public simd_handler
 simd_handler:
@@ -296,7 +299,7 @@ simd_handler:
 	mov rdi, simd_text
 	call exception_handler
 
-	iret
+	iretq
 
 public virtual_handler
 virtual_handler:
@@ -304,7 +307,7 @@ virtual_handler:
 	mov rdi, virtual_text
 	call exception_handler
 
-	iret
+	iretq
 
 public security_handler
 security_handler:
@@ -312,7 +315,7 @@ security_handler:
 	mov rdi, security_text
 	call exception_handler
 
-	iret
+	iretq
 
 ;section '.rodata'
 
