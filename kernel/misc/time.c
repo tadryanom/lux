@@ -39,6 +39,10 @@ time_t get_time()
 
 	// how many leap years have there been?
 	time_t leap_years = (time_t)(rtc.year - 1970) / 4;
+
+	if((rtc.year - 1970) % 4 != 0)
+		leap_years++;
+
 	time_t normal_years = (time_t)(rtc.year - 1970) - leap_years;
 
 	time_t total_days = (normal_years * 365) + (leap_years * 366);
