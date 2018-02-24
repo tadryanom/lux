@@ -23,6 +23,12 @@ char lock_flag;
 
 lock_t tty_mutex = 0;
 
+uint32_t colors[] = {
+	BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, GRAY,
+	DARK_GRAY, BRIGHT_RED, BRIGHT_GREEN, BRIGHT_YELLOW,
+	BRIGHT_BLUE, BRIGHT_MAGENTA, BRIGHT_CYAN, WHITE,
+};
+
 // screen_init(): Initializes the screen
 // Param:	vbe_mode_t *vbe_mode - VESA mode information
 // Return:	Nothing
@@ -60,9 +66,8 @@ void screen_init(vbe_mode_t *vbe_info)
 	size_t i = 0;
 	while(i < TTY_COUNT)
 	{
-		ttys[i].buffer = kmalloc((width_chars+2) * height_chars);
-		ttys[i].bg = VGA_BLACK;
-		ttys[i].fg = VGA_GRAY;
+		ttys[i].buffer = kmalloc(width_chars * height_chars * 2);
+		ttys[i].attribute = 0x07;	// gray on black, default
 		ttys[i].cursor_visible = 1;
 		ttys[i].lock = 0;
 
@@ -389,8 +394,14 @@ void tty_switch(size_t tty)
 void tty_scroll(size_t tty)
 {
 	char *buffer = ttys[tty].buffer;
-	memmove(buffer, buffer+width_chars, (width_chars - 1) * height_chars);
-	memset(buffer + ((height_chars-1) * width_chars), 0, width_chars);
+	memcpy(buffer, buffer + (width_chars * 2), (width_chars - 1) * height_chars * 2);
+	//memset(buffer + ((height_chars-1) * (width_chars * 2)), 0, width_chars * 2);
+
+	uint16_t *last_line = (uint16_t*)(buffer + ((height_chars - 1) * (width_chars * 2)));
+	uint16_t i;
+
+	for(i = 0; i < width_chars; i++)
+		last_line[i] = (uint16_t)ttys[tty].attribute << 8;
 
 	ttys[tty].x_pos = 0;
 	ttys[tty].y_pos = height_chars - 1;
@@ -411,11 +422,11 @@ void tty_redraw(size_t tty)
 	uint16_t x = 0, y = 0;
 
 	screen_lock();
-	screen_clear(ttys[tty].bg);
+	screen_clear(colors[(ttys[tty].attribute >> 4) & 0x0F]);
 
 	// now draw character by character
 	size_t i = 0;
-	size_t tty_size = width_chars * height_chars;
+	size_t tty_size = width_chars * height_chars * 2;
 	while(i < tty_size)
 	{
 		/*if(ttys[tty].buffer[i] == 0)
@@ -424,22 +435,7 @@ void tty_redraw(size_t tty)
 			continue;
 		}*/
 
-		if(ttys[tty].buffer[i] == 13)
-		{
-			x = 0;
-			i++;
-			continue;
-		}
-
-		if(ttys[tty].buffer[i] == 10)
-		{
-			x = 0;
-			y++;
-			i++;
-			continue;
-		}
-
-		screen_drawch(ttys[tty].buffer[i], x * 8, y * 16, ttys[tty].fg, ttys[tty].bg);
+		screen_drawch(ttys[tty].buffer[i], x * 8, y * 16, colors[ttys[tty].buffer[i+1] & 0x0F], colors[(ttys[tty].buffer[i+1] >> 4) & 0x0F]);
 		x++;
 		if(x >= width_chars)
 		{
@@ -447,13 +443,16 @@ void tty_redraw(size_t tty)
 			y++;
 		}
 
-		i++;
+		i += 2;
 		continue;
 	}
 
 	// draw the cursor if we have to
 	if(ttys[tty].cursor_visible != 0)
-		screen_fill_rect(ttys[tty].x_pos * 8, ttys[tty].y_pos * 16, 8, 16, ttys[tty].fg);
+	{
+		i = (ttys[tty].y_pos * width_chars << 1) + (ttys[tty].x_pos << 1);
+		screen_fill_rect(ttys[tty].x_pos << 3, (ttys[tty].y_pos << 4) + 14, 8, 2, colors[ttys[tty].buffer[i+1] & 0x0F]);
+	}
 
 	screen_unlock();
 	screen_redraw();
@@ -477,7 +476,7 @@ void tty_put(char character, size_t tty)
 
 	acquire_lock(&tty_mutex);
 
-	size_t buffer_offset = (size_t)((ttys[tty].y_pos * width_chars) + ttys[tty].x_pos) & 0xFFFFFFFF;
+	size_t buffer_offset = (size_t)((ttys[tty].y_pos * width_chars * 2) + ttys[tty].x_pos * 2) & 0xFFFFFFFF;
 	char *buffer = (char*)(ttys[tty].buffer + buffer_offset);
 
 	//buffer[0] = character;
@@ -500,6 +499,8 @@ void tty_put(char character, size_t tty)
 	else
 	{
 		buffer[0] = character;
+		buffer[1] = ttys[tty].attribute;
+
 		ttys[tty].x_pos++;
 
 		if(ttys[tty].x_pos >= width_chars)

@@ -20,6 +20,15 @@
 #define FS_FAT32			5
 #define FS_ISO9660			6
 
+// error codes
+#define EACCES				-1
+#define EIO				-2
+#define ELOOP				-3
+#define ENAMETOOLONG			-4
+#define ENOENT				-5
+#define ENOTDIR				-6
+#define EOVERFLOW			-7
+
 // open() flags
 #define O_RDONLY			0x0001
 #define O_WRONLY			0x0002
@@ -130,7 +139,7 @@ mountpoint_t *mountpoints;
 char full_path[1024];
 
 void vfs_init();
-void vfs_make_full_path();
+size_t vfs_resolve_path(char *, const char *);
 
 // Public functions
 int open(const char *, int, ...);

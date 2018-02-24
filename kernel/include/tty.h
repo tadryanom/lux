@@ -8,30 +8,32 @@
 
 #include <boot.h>
 
-#define TTY_COUNT			4
+#define TTY_COUNT			6
 
-// Original VGA pallette
-#define VGA_BLACK			0x000000
-#define VGA_BLUE			0x0000AA
-#define VGA_GREEN			0x00AA00
-#define VGA_CYAN			0x00AAAA
-#define VGA_RED				0xAA0000
-#define VGA_MAGENTA			0xAA00AA
-#define VGA_BROWN			0xAA5500
-#define VGA_GRAY			0xAAAAAA
-#define VGA_DARK_GRAY			0x555555
-#define VGA_BRIGHT_BLUE			0x5555FF
-#define VGA_BRIGHT_GREEN		0x55FF55
-#define VGA_BRIGHT_CYAN			0x55FFFF
-#define VGA_BRIGHT_RED			0xFF5555
-#define VGA_BRIGHT_MAGENTA		0xFF55FF
-#define VGA_YELLOW			0xFFFF55
-#define VGA_WHITE			0xFFFFFF
+#define rgb(r,g,b)			((r << 16) + (g << 8) + b)
+
+// Color Pallette
+#define BLACK				rgb(0,0,0)
+#define RED				rgb(222,56,43)
+#define GREEN				rgb(57,181,74)
+#define YELLOW				rgb(255,199,6)
+#define BLUE				rgb(0,111,184)
+#define MAGENTA				rgb(118,38,113)
+#define CYAN				rgb(44,181,233)
+#define GRAY				rgb(170,170,170)
+#define DARK_GRAY			rgb(128,128,128)
+#define BRIGHT_RED			rgb(255,0,0)
+#define BRIGHT_GREEN			rgb(0,255,0)
+#define BRIGHT_YELLOW			rgb(255,255,0)
+#define BRIGHT_BLUE			rgb(0,0,255)
+#define BRIGHT_MAGENTA			rgb(255,0,255)
+#define BRIGHT_CYAN			rgb(0,255,255)
+#define WHITE				rgb(255,255,255)
 
 typedef struct tty_t
 {
-	uint32_t bg, fg;
 	uint16_t x_pos, y_pos;
+	uint8_t attribute;
 	char cursor_visible;
 	char lock;
 	char *buffer;

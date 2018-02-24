@@ -38,7 +38,67 @@ void kmain(uint32_t multiboot_magic, multiboot_info_t *multiboot_info, vbe_mode_
 	//ps2_init();
 	//devmgr_dump();
 
-	kprintf("Current Unix time is: %d\n", get_time());
+	struct stat statstruc;
+	stat("/dev/stdin", &statstruc);
+
+	kprintf("stat information for /dev/stdin:\n");
+	kprintf("st_mode: %xd (", statstruc.st_mode);
+
+	if(statstruc.st_mode & S_IFDIR)
+		kprintf("d");
+	else if(statstruc.st_mode & S_IFCHR)
+		kprintf("c");
+	else
+		kprintf("-");
+
+	if(statstruc.st_mode & S_IRUSR)
+		kprintf("r");
+	else
+		kprintf("-");
+
+	if(statstruc.st_mode & S_IWUSR)
+		kprintf("w");
+	else
+		kprintf("-");
+
+	if(statstruc.st_mode & S_IXUSR)
+		kprintf("x");
+	else
+		kprintf("-");
+
+	if(statstruc.st_mode & S_IRGRP)
+		kprintf("r");
+	else
+		kprintf("-");
+
+	if(statstruc.st_mode & S_IWGRP)
+		kprintf("w");
+	else
+		kprintf("-");
+
+	if(statstruc.st_mode & S_IXGRP)
+		kprintf("x");
+	else
+		kprintf("-");
+
+	if(statstruc.st_mode & S_IROTH)
+		kprintf("r");
+	else
+		kprintf("-");
+
+	if(statstruc.st_mode & S_IWOTH)
+		kprintf("w");
+	else
+		kprintf("-");
+
+	if(statstruc.st_mode & S_IXOTH)
+		kprintf("x");
+	else
+		kprintf("-");
+
+	kprintf(")\n");
+	kprintf("st_atime: %d\n", statstruc.st_atime);
+
 
 	while(1)
 		asm volatile ("sti\nhlt");

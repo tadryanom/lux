@@ -15,11 +15,14 @@
 typedef struct devfs_entry_t
 {
 	char name[48];
-	mode_t mode;
+	struct stat information;
 } devfs_entry_t;
+
+struct stat devfs_stat;
 
 void devfs_init();
 void devfs_make_entry(char *, mode_t);
+int devstat(const char *, struct stat *);
 
 
 
