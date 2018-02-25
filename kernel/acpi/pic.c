@@ -13,6 +13,7 @@
 #include <idt.h>
 
 uint32_t master_spurious = 0, slave_spurious = 0;
+uint8_t pic_done = 0;
 
 // pic_init(): Initializes the PICs
 // Param:	uint8_t base - base of interrupts
@@ -49,18 +50,16 @@ void pic_init(uint8_t base)
 	iowait();
 
 	// EOI any existing IRQs
-	outb(0x20, 0x20);
-	iowait();
-	outb(0x20, 0x20);
-	iowait();
-	outb(0x20, 0x20);
-	iowait();
-	outb(0xA0, 0x20);
-	iowait();
-	outb(0xA0, 0x20);
-	iowait();
-	outb(0xA0, 0x20);
-	iowait();
+	int i = 0;
+	while(i < 8)
+	{
+		outb(0x20, 0x20);
+		outb(0xA0, 0xA0);
+		iowait();
+		outb(0x20, 0x20);
+		iowait();
+		i++;
+	}
 
 	// unmask the cascade to allow IRQs from the slave PIC
 	pic_unmask(2);
@@ -69,16 +68,20 @@ void pic_init(uint8_t base)
 	idt_install(base + 7, (size_t)&pic0_spurious_stub);
 	idt_install(base + 15, (size_t)&pic1_spurious_stub);
 
-	// register the device
-	device_t *device = kmalloc(sizeof(device_t));
-	device->category = DEVMGR_CATEGORY_SYSTEM;
-	device->io[0].base = 0x20;
-	device->io[0].size = 2;
-	device->io[1].base = 0xA0;
-	device->io[1].size = 2;
-	devmgr_register(device, "8259 PIC");
+	if(pic_done == 0)
+	{
+		// register the device
+		device_t *device = kmalloc(sizeof(device_t));
+		device->category = DEVMGR_CATEGORY_SYSTEM;
+		device->io[0].base = 0x20;
+		device->io[0].size = 2;
+		device->io[1].base = 0xA0;
+		device->io[1].size = 2;
+		devmgr_register(device, "8259 PIC");
+		kfree(device);
+	}
 
-	kfree(device);
+	pic_done = 1;
 }
 
 // pic_mask(): Masks an IRQ

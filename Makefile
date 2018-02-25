@@ -12,14 +12,15 @@ lux32:
 	fasm kernel/asm_i386/cpu.asm cpu.o
 	fasm kernel/asm_i386/sse2.asm sse2.o
 	fasm kernel/asm_i386/irq_stub.asm irq_stub.o
-
 	$(CC) $(CFLAGS) -target i386-pc-none -Ikernel/include -c $(CFILES)
-
 	ld -melf_i386 -nostdlib -nodefaultlibs -O2 -T kernel/ld_i386.ld $(OBJECTS) -o iso/boot/kernel.sys
+
+	dd if=/dev/zero conv=notrunc bs=512 count=20480 of=iso/boot/initrd.img
+	mke2fs -b1024 iso/boot/initrd.img
 
 	grub-mkrescue -o lux.iso iso
 
-	qemu-system-i386 -cdrom lux.iso -serial stdio -vga std -smp 2
+	qemu-system-i386 -enable-kvm -vga std -smp 2 -cdrom lux.iso
 
 lux64:
 	fasm kernel/asm_i386/vbe.asm vbe.sys
@@ -29,17 +30,18 @@ lux64:
 	fasm kernel/asm_x86_64/cpu.asm cpu.o
 	fasm kernel/asm_x86_64/sse2.asm sse2.o
 	fasm kernel/asm_x86_64/irq_stub.asm irq_stub.o
-
 	$(CC) $(CFLAGS) -target x86_64-pc-none -m64 -mno-red-zone -mcmodel=large -Ikernel/include -c $(CFILES)
-
 	ld -melf_x86_64 -nostdlib -nodefaultlibs -O2 -T kernel/ld_x86_64.ld $(OBJECTS) -o kernel64.sys
+
+	dd if=/dev/zero conv=notrunc bs=512 count=20480 of=iso/boot/initrd.img
+	mke2fs -b1024 iso/boot/initrd.img
 
 	fasm kernel/asm_x86_64/setup.asm iso/boot/kernel.sys
 	grub-mkrescue -o lux.iso iso
-	qemu-system-x86_64 -cdrom lux.iso -serial stdio -vga std -smp 2
+	qemu-system-x86_64 -enable-kvm -vga std -smp 2 -cdrom lux.iso
 
 clean:
-	rm -f iso/boot/*.sys
+	rm -f iso/boot/*.*
 	rm -f *.o *.sys
 
 

@@ -16,7 +16,7 @@
 #include <ps2.h>
 #include <vfs.h>
 #include <tasking.h>
-#include <time.h>
+#include <blkdev.h>
 
 void *kend;
 
@@ -41,7 +41,13 @@ void kmain(uint32_t multiboot_magic, multiboot_info_t *multiboot_info, vbe_mode_
 		}
 	} else
 	{
-		kend = (void*)0x400000;		// 4 MB
+#if __i386__
+	kend = (void*)0x400000;
+#endif
+
+#if __x86_64__
+	kend = (void*)0x400000 + PHYSICAL_MEMORY;
+#endif
 	}
 
 	mm_init(multiboot_info);
@@ -54,77 +60,14 @@ void kmain(uint32_t multiboot_magic, multiboot_info_t *multiboot_info, vbe_mode_
 	timer_init();
 	tasking_init();
 	vfs_init();
+	blkdev_init(multiboot_info);
 	//ps2_init();
 	//devmgr_dump();
-
-	vmm_map(0x1000, 0x2000, 64, 3);
-	while(1);
-
-	struct stat statstruc;
-	stat("/dev/stdin", &statstruc);
-
-	kprintf("stat information for /dev/stdin:\n");
-	kprintf("st_mode: %xd (", statstruc.st_mode);
-
-	if(statstruc.st_mode & S_IFDIR)
-		kprintf("d");
-	else if(statstruc.st_mode & S_IFCHR)
-		kprintf("c");
-	else
-		kprintf("-");
-
-	if(statstruc.st_mode & S_IRUSR)
-		kprintf("r");
-	else
-		kprintf("-");
-
-	if(statstruc.st_mode & S_IWUSR)
-		kprintf("w");
-	else
-		kprintf("-");
-
-	if(statstruc.st_mode & S_IXUSR)
-		kprintf("x");
-	else
-		kprintf("-");
-
-	if(statstruc.st_mode & S_IRGRP)
-		kprintf("r");
-	else
-		kprintf("-");
-
-	if(statstruc.st_mode & S_IWGRP)
-		kprintf("w");
-	else
-		kprintf("-");
-
-	if(statstruc.st_mode & S_IXGRP)
-		kprintf("x");
-	else
-		kprintf("-");
-
-	if(statstruc.st_mode & S_IROTH)
-		kprintf("r");
-	else
-		kprintf("-");
-
-	if(statstruc.st_mode & S_IWOTH)
-		kprintf("w");
-	else
-		kprintf("-");
-
-	if(statstruc.st_mode & S_IXOTH)
-		kprintf("x");
-	else
-		kprintf("-");
-
-	kprintf(")\n");
-	kprintf("st_atime: %d\n", statstruc.st_atime);
-
 
 	while(1)
 		asm volatile ("sti\nhlt");
 }
+
 
 
 

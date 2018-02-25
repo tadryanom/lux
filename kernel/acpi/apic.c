@@ -34,6 +34,15 @@ void apic_init()
 	ioapic_count = 0;
 	override_count = 0;
 
+	// Apparently we need to initialize the PIC before initialzing SMP APs
+	// because on real HW and on QEMU with KVM, the PIC IRQs can somehow
+	// be handled by APs. Is this supposed to be possible? Does the spec
+	// allow it? Anyway, I thought it was safe to "sti;hlt" on APs before
+	// initializing an interrupt controller, but it's not, so we have to
+	// remap the PIC first, because fuck the BIOS, that's why.
+
+	pic_init(UNUSED_PIC_BASE);
+
 	// find ACPI MADT table
 	madt = acpi_scan("APIC", 0);
 	if(!madt)

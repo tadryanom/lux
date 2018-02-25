@@ -43,6 +43,10 @@ start:
 	mov [saved_magic], eax
 	mov [saved_structure], ebx
 
+	mov al, 0xFF
+	out 0x21, al
+	out 0xA1, al
+
 	; copy 16-bit VBE driver to low memory
 	mov esi, vbe_driver
 	mov edi, 0x1000

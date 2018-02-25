@@ -48,6 +48,10 @@ start:
 	mov [saved_magic], eax
 	mov [saved_structure], ebx
 
+	mov al, 0xFF
+	out 0x21, al
+	out 0xA1, al
+
 	; check for long mode
 	mov eax, 0x80000000
 	cpuid
