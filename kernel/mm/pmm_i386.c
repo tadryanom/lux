@@ -42,7 +42,7 @@ void pmm_init(multiboot_info_t *multiboot_info)
 	}
 
 	// create a bitmap at the end of the kernel binary
-	pmm_bitmap = (uint8_t*)(&kend);
+	pmm_bitmap = (uint8_t*)kend;
 	memset(pmm_bitmap, 0, PMM_BITMAP_SIZE);
 
 	// and start!

@@ -8,7 +8,7 @@
 
 #include <types.h>
 
-typedef uint32_t lock_t;
+typedef volatile uint32_t lock_t;
 
 void acquire_lock(lock_t *);
 void release_lock(lock_t *);

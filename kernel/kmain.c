@@ -18,12 +18,31 @@
 #include <tasking.h>
 #include <time.h>
 
+void *kend;
+
 void kmain(uint32_t multiboot_magic, multiboot_info_t *multiboot_info, vbe_mode_t *vbe_mode)
 {
 	kprint_init();
 
 	if(multiboot_magic != MULTIBOOT_MAGIC)
 		kprintf("warning: invalid multiboot magic; taking a risk and continuing...\n");
+
+	// set *kend to the start of free memory, after GRUB modules
+	uint32_t mod_count = 0;
+	multiboot_module_t *module;
+	if(multiboot_info->flags & MULTIBOOT_FLAGS_MODULES && multiboot_info->mods_count != 0)
+	{
+		module = (multiboot_module_t*)((size_t)multiboot_info->mods_addr);
+
+		while(mod_count < multiboot_info->mods_count)
+		{
+			kend = (void*)((size_t)module[mod_count].mod_end);
+			mod_count++;
+		}
+	} else
+	{
+		kend = (void*)0x400000;		// 4 MB
+	}
 
 	mm_init(multiboot_info);
 	devmgr_init();
@@ -37,6 +56,9 @@ void kmain(uint32_t multiboot_magic, multiboot_info_t *multiboot_info, vbe_mode_
 	vfs_init();
 	//ps2_init();
 	//devmgr_dump();
+
+	vmm_map(0x1000, 0x2000, 64, 3);
+	while(1);
 
 	struct stat statstruc;
 	stat("/dev/stdin", &statstruc);

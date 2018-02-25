@@ -35,6 +35,14 @@ typedef struct multiboot_info_t
 	uint32_t mmap_addr;
 }__attribute__((packed)) multiboot_info_t;
 
+typedef struct multiboot_module_t
+{
+	uint32_t mod_start;
+	uint32_t mod_end;
+	uint32_t string;
+	uint32_t reserved;
+}__attribute__((packed)) multiboot_module_t;
+
 typedef struct e820_entry_t
 {
 	uint32_t size;

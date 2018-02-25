@@ -42,7 +42,7 @@ void pmm_init(multiboot_info_t *multiboot_info)
 	}*/
 
 	// create a bitmap at 32 MB
-	pmm_bitmap = (uint8_t*)(0x2000000);
+	pmm_bitmap = (uint8_t*)kend;
 	memset(pmm_bitmap, 0, PMM_BITMAP_SIZE);
 
 	// and start!
@@ -105,7 +105,7 @@ void pmm_init(multiboot_info_t *multiboot_info)
 		mmap_ptr = (e820_entry_t*)mmap;
 	}
 
-	kprintf("pmm: total of %d MB memory, of which %d MB are usable.\n", (uint32_t)total_memory/ 1024/1024, (uint32_t)usable_memory/1024/1024);
+	kprintf("pmm: total of %d MB memory, of which %d MB are usable.\n", (uint32_t)(total_memory/ 1024/1024), (uint32_t)(usable_memory/1024/1024));
 
 	// mark the lowest 48 MB for the kernel
 	pmm_mark_used(0, 12288);
@@ -221,6 +221,9 @@ void pmm_mark_free(size_t base, size_t count)
 
 uint8_t pmm_is_page_free(size_t page)
 {
+	if(page >= highest_usable_address)
+		return 1;
+
 	size_t group = page >> (PAGE_SIZE_SHIFT + 3);
 	uint8_t page_number = (page - (group << (PAGE_SIZE_SHIFT + 3))) >> PAGE_SIZE_SHIFT;
 
