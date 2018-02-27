@@ -35,6 +35,7 @@ typedef struct process_t
 
 	size_t pmem_base;
 	size_t pmem_size;
+	size_t tty;
 
 	char path[1024];
 } process_t;
@@ -67,6 +68,7 @@ typedef struct process_t
 
 	size_t pmem_base;
 	size_t pmem_size;
+	size_t tty;
 
 	char path[1024];
 } process_t;
@@ -77,6 +79,6 @@ process_t *processes;
 void tasking_init();
 char *get_path(char *);
 pid_t get_pid();
-
+size_t get_tty();
 
 

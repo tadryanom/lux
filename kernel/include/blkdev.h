@@ -24,7 +24,9 @@
 typedef struct blkdev_t
 {
 	uint8_t type;		// type of device as constants above
-	uint8_t data[191];	// type-specific data
+	uint8_t reserved;
+	uint16_t sector_size;
+	uint8_t data[188];	// type-specific data
 	char name[64];		// name of device
 } blkdev_t;
 
@@ -40,7 +42,7 @@ blkdev_t *blkdevs;
 size_t blkdev_count;
 
 void blkdev_init(multiboot_info_t *);
-dev_t blkdev_register(uint8_t, void *, char *);
+dev_t blkdev_register(uint8_t, uint16_t, void *, char *);
 int blkdev_read(dev_t, uint64_t, uint64_t, void *);
 int blkdev_write(dev_t, uint64_t, uint64_t, void *);
 int blkdev_read_bytes(dev_t, uint64_t, uint64_t, void *);

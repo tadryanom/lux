@@ -197,6 +197,20 @@ int memcmp(const void *ptr1, const void *ptr2, size_t num)
 	return 0;
 }
 
+// strcmp(): Compares two strings
+// Param:	const char *s1 - string 1
+// Param:	const char *s2 - string 2
+// Return:	int - result of comparison
+
+int strcmp(const char *s1, const char *s2)
+{
+	if(strlen(s1) != strlen(s2))
+		return -1;
+
+	else
+		return memcmp(s1, s2, strlen(s1));
+}
+
 // strcpy(): Copies a string
 // Param:	char *s1 - destination
 // Param:	const char *s2 - source

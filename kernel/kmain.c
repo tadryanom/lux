@@ -17,6 +17,7 @@
 #include <vfs.h>
 #include <tasking.h>
 #include <blkdev.h>
+#include <string.h>
 
 void *kend;
 
@@ -64,10 +65,16 @@ void kmain(uint32_t multiboot_magic, multiboot_info_t *multiboot_info, vbe_mode_
 	//ps2_init();
 	//devmgr_dump();
 
+	int file = open("/dev/stdout", O_RDWR);
+	kprintf("opened '/dev/stdout', file handle %d\n", file);
+
+	char text[] = "\nHello, world.\nThis is being written using write() and not kprintf()\n\nNew line above.";
+
+	write(file, text, strlen(text));
+
 	while(1)
 		asm volatile ("sti\nhlt");
 }
-
 
 
 

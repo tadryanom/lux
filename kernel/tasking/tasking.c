@@ -23,6 +23,7 @@ void tasking_init()
 
 	// configure the kernel task
 	processes[0].flags = PROCESS_FLAGS_PRESENT;
+	processes[0].tty = 0;
 	processes[0].path[0] = '/';
 	processes[0].path[1] = 0;
 }
@@ -48,6 +49,15 @@ pid_t get_pid()
 	return cpu->current_pid;
 }
 
+// get_tty(): Returns the current tty
+// Param:	Nothing
+// Return:	size_t - tty index of current process
+
+size_t get_tty()
+{
+	pid_t pid = get_pid();
+	return processes[pid].tty;
+}
 
 
 
