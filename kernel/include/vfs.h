@@ -8,17 +8,10 @@
 
 #include <types.h>
 #include <time.h>
+#include <lock.h>
 
 #define MAX_FILES			512
-#define MAX_MOUNTPOINTS			16
-
-// kernel-supported filesystems someday
-#define FS_EXT2				1
-#define FS_EXT3				2
-#define FS_EXT4				3
-#define FS_FAT16			4
-#define FS_FAT32			5
-#define FS_ISO9660			6
+#define MAX_MOUNTPOINTS			32
 
 // error codes
 #define EACCES				-1
@@ -28,6 +21,14 @@
 #define ENOENT				-5
 #define ENOTDIR				-6
 #define EOVERFLOW			-7
+#define ENXIO				-8
+#define ENOBUFS				-9
+#define EBADF				-10
+#define EINVAL				-11
+#define EPERM				-12
+#define ENODEV				-13
+#define ENOTBLK				-14
+#define EBUSY				-15
 
 // open() flags
 #define O_RDONLY			0x0001
@@ -54,25 +55,46 @@
 #define S_IFREG				0x0008		// regular file
 #define S_IFDIR				0x0010		// directory
 #define S_IFLNK				0x0020		// symbolic link
+#define S_IFSOCK			0x0040		// Unix socket
+#define S_IFMT				0x007F		// for BSD compatibility
 
-#define S_IRUSR				0x0040		// read, owner
-#define S_IWUSR				0x0080		// write, owner
-#define S_IXUSR				0x0100		// execute, owner
+#define S_IRUSR				0x0080		// read, owner
+#define S_IWUSR				0x0100		// write, owner
+#define S_IXUSR				0x0200		// execute, owner
 #define S_IRWXU				(S_IRUSR | S_IWUSR | S_IXUSR)
 
-#define S_IRGRP				0x0200		// read, group
-#define S_IWGRP				0x0400		// write, group
-#define S_IXGRP				0x0800		// execute, group
+#define S_IRGRP				0x0400		// read, group
+#define S_IWGRP				0x0800		// write, group
+#define S_IXGRP				0x1000		// execute, group
 #define S_IRWXG				(S_IRGRP | S_IWGRP | S_IXGRP)
 
-#define S_IROTH				0x1000		// read, others
-#define S_IWOTH				0x2000		// write, others
-#define S_IXOTH				0x4000		// execute, others
+#define S_IROTH				0x2000		// read, others
+#define S_IWOTH				0x4000		// write, others
+#define S_IXOTH				0x8000		// execute, others
 #define S_IRWXO				(S_IROTH | S_IWOTH | S_IXOTH)
 
+// Values of `whence' for lseek()
+#define SEEK_SET			1
+#define SEEK_CUR			2
+#define SEEK_END			3
+
+// Standard file descriptor numbers
 #define STDIN				0
 #define STDOUT				1
 #define STDERR				2
+
+// Mountpoint Flags
+#define MS_MGC_MASK			MS_MGC_VAL
+#define MS_MGC_VAL			0x0001
+#define MS_REMOUNT			0x0002
+#define MS_RDONLY			0x0004
+#define MS_NOSUID			0x0008
+#define MS_NOEXEC			0x0010
+#define MS_NODEV			0x0020
+#define MS_SYNCHRONOUS			0x0040
+#define MS_MANDLOCK			0x0080
+#define MS_NOATIME			0x0100
+#define MS_NODIRATIME			0x0200
 
 typedef uint64_t ino_t;
 typedef uint32_t mode_t;
@@ -88,7 +110,7 @@ typedef struct file_handle_t
 {
 	char present;
 	char path[1024];
-	size_t position;
+	off_t position;
 	int flags;
 	pid_t pid;
 } file_handle_t;
@@ -110,9 +132,10 @@ typedef struct directory_entry_t
 typedef struct mountpoint_t
 {
 	char present;
-	uint16_t fs_type;
+	char fstype[16];
 	char path[1024];
-	char device[64];	// '/dev/hdxx'
+	char device[64];		// '/dev/hdxpx'
+	unsigned long int flags;
 	uid_t uid;
 	gid_t gid;
 } mountpoint_t;
@@ -134,24 +157,31 @@ struct stat
 	blkcnt_t st_blocks;
 };
 
+lock_t vfs_mutex;
 file_handle_t *files;
 mountpoint_t *mountpoints;
 char full_path[1024];
 
 void vfs_init();
 size_t vfs_resolve_path(char *, const char *);
+int vfs_determine_mountpoint(char *);
 
 // Public functions
 int open(const char *, int, ...);
-int read(int, char *, int);
-int write(int, char *, int);
+int close(int);
+ssize_t read(int, char *, size_t);
+ssize_t write(int, char *, size_t);
 int link(char *, char *);
 int unlink(char *);
-int lseek(int, int, int);
+int lseek(int, off_t, int);
 int chmod(const char *, mode_t);
 int fchmod(int, mode_t);
 int stat(const char *, struct stat *);
+int fstat(int, struct stat *);
 int mkdir(const char *, mode_t);
+int mount(const char *, const char *, const char *, unsigned long int, void *);
+int umount(const char *);
+int umount2(const char *, int);
 
 // Non-standard functions
 directory_t *dir_open(char *);

@@ -222,7 +222,25 @@ char *strcpy(char *s1, const char *s2)
 	return s1;
 }
 
+// oct_to_dec(): Converts ASCII octal string to an integer
+// Param:	char *string - string
+// Return:	size_t - integer
 
+size_t oct_to_dec(char *string)
+{
+	size_t integer = 0;
+	size_t multiplier = 1;
+	ssize_t i = (ssize_t)strlen(string) - 1;
+
+	while(i >= 0 && string[i] >= '0' && string[i] <= '7')
+	{
+		integer += (string[i] - 48) * multiplier;
+		multiplier *= 8;
+		i--;
+	}
+
+	return integer;
+}
 
 
 

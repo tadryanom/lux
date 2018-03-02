@@ -24,10 +24,12 @@ typedef int32_t pid_t;
 
 #if __x86_64__
 typedef unsigned long long size_t;
+typedef signed long long ssize_t;
 #endif
 
 #if __i386__
 typedef unsigned int size_t;
+typedef signed int ssize_t;
 #endif
 
 extern void *kend;

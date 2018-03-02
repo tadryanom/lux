@@ -1,0 +1,2 @@
+Hello, world.
+If you're reading this, loading a file from the initrd is working.

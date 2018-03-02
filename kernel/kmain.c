@@ -13,11 +13,11 @@
 #include <tty.h>
 #include <acpi.h>
 #include <apic.h>
-#include <ps2.h>
 #include <vfs.h>
 #include <tasking.h>
 #include <blkdev.h>
 #include <string.h>
+#include <rand.h>
 
 void *kend;
 
@@ -31,13 +31,13 @@ void kmain(uint32_t multiboot_magic, multiboot_info_t *multiboot_info, vbe_mode_
 	// set *kend to the start of free memory, after GRUB modules
 	uint32_t mod_count = 0;
 	multiboot_module_t *module;
-	if(multiboot_info->flags & MULTIBOOT_FLAGS_MODULES && multiboot_info->mods_count != 0)
+	if(((multiboot_info->flags & MULTIBOOT_FLAGS_MODULES) != 0) && multiboot_info->mods_count != 0)
 	{
 		module = (multiboot_module_t*)((size_t)multiboot_info->mods_addr);
 
 		while(mod_count < multiboot_info->mods_count)
 		{
-			kend = (void*)((size_t)module[mod_count].mod_end);
+			kend = (void*)((size_t)module[mod_count].mod_end + 0x100000);
 			mod_count++;
 		}
 	} else
@@ -62,15 +62,73 @@ void kmain(uint32_t multiboot_magic, multiboot_info_t *multiboot_info, vbe_mode_
 	tasking_init();
 	vfs_init();
 	blkdev_init(multiboot_info);
-	//ps2_init();
+	mount("/dev/initrd", "/", "ustar", 0, 0);
 	//devmgr_dump();
 
-	int file = open("/dev/stdout", O_RDWR);
-	kprintf("opened '/dev/stdout', file handle %d\n", file);
+	/*int file = open("/hello.txt", O_RDONLY);
+	kprintf("opened file hello.txt, file handle %d\n", file);*/
 
-	char text[] = "\nHello, world.\nThis is being written using write() and not kprintf()\n\nNew line above.";
+	struct stat stat_info;
+	int status = stat("/hello.txt", &stat_info);
+	kprintf("stat '/hello.txt' returned status code: %d\n", status);
 
-	write(file, text, strlen(text));
+	kprintf("  file mode: 0x%xd (", stat_info.st_mode);
+	if(stat_info.st_mode & S_IFBLK)
+		kprintf("b");
+	else if(stat_info.st_mode & S_IFCHR)
+		kprintf("c");
+	else if(stat_info.st_mode & S_IFDIR)
+		kprintf("d");
+	else
+		kprintf("-");
+
+	if(stat_info.st_mode & S_IRUSR)
+		kprintf("r");
+	else
+		kprintf("-");
+
+	if(stat_info.st_mode & S_IWUSR)
+		kprintf("w");
+	else
+		kprintf("-");
+
+	if(stat_info.st_mode & S_IXUSR)
+		kprintf("x");
+	else
+		kprintf("-");
+
+	if(stat_info.st_mode & S_IRGRP)
+		kprintf("r");
+	else
+		kprintf("-");
+
+	if(stat_info.st_mode & S_IWGRP)
+		kprintf("w");
+	else
+		kprintf("-");
+
+	if(stat_info.st_mode & S_IXGRP)
+		kprintf("x");
+	else
+		kprintf("-");
+
+	if(stat_info.st_mode & S_IROTH)
+		kprintf("r");
+	else
+		kprintf("-");
+
+	if(stat_info.st_mode & S_IWOTH)
+		kprintf("w");
+	else
+		kprintf("-");
+
+	if(stat_info.st_mode & S_IXOTH)
+		kprintf("x");
+	else
+		kprintf("-");
+
+	kprintf(")\n");
+	kprintf("  file size: %d\n", stat_info.st_size);
 
 	while(1)
 		asm volatile ("sti\nhlt");

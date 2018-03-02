@@ -8,7 +8,7 @@
 
 #include <types.h>
 
-#define TIMER_FREQUENCY			100	// Hz
+#define TIMER_FREQUENCY			1000	// Hz
 
 extern void timer_irq_stub();
 
@@ -17,4 +17,6 @@ uint8_t timer_irq_line;
 
 void timer_init();
 void pit_init();
+
+
 

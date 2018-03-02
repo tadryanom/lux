@@ -23,7 +23,8 @@ struct stat devfs_stat;
 void devfs_init();
 void devfs_make_entry(char *, mode_t);
 int devstat(const char *, struct stat *);
-
+ssize_t devfs_read(int, char *, size_t);
+ssize_t devfs_write(int, char *, size_t);
 
 
 

@@ -4,11 +4,13 @@
  * copyright (c) 2018 by Omar Mohammad
  */
 
+#pragma once
+
 #include <types.h>
 
-extern void ps2_kbd_irq_stub();
+#define RAND_MAX			65535
 
-void ps2_init();
+unsigned int rand();
 
 
 

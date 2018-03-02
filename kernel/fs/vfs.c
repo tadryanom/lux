@@ -12,11 +12,13 @@
 #include <devfs.h>
 #include <lock.h>
 #include <tty.h>
+#include <ustar.h>		// the only in-kernel FS
 
 file_handle_t *files;
 mountpoint_t *mountpoints;
 char full_path[1024];
 lock_t vfs_mutex = 0;
+struct stat root_stat;
 
 // vfs_init(): Initializes the virtual filesystem
 // Param:	Nothing
@@ -27,6 +29,14 @@ void vfs_init()
 	kprintf("vfs: initializing virtual filesystem...\n");
 	files = kcalloc(sizeof(file_handle_t), MAX_FILES);
 	mountpoints = kcalloc(sizeof(mountpoint_t), MAX_MOUNTPOINTS);
+
+	// stat for root filesystem
+	memset(&root_stat, 0, sizeof(struct stat));
+	root_stat.st_mode = S_IFDIR | S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
+	time_t timestamp = get_time();
+	root_stat.st_atime = timestamp;
+	root_stat.st_mtime = timestamp;
+	root_stat.st_ctime = timestamp;
 
 	devfs_init();
 
@@ -52,6 +62,13 @@ size_t vfs_resolve_path(char *fullpath, const char *path)
 
 	if(path[0] == '/')
 	{
+		if(path[1] == 0)
+		{
+			fullpath[0] = '/';
+			fullpath[1] = 0;
+			return 1;
+		}
+
 		// starting from the root directory here
 		fullpath[0] = '/';
 
@@ -100,34 +117,6 @@ size_t vfs_resolve_path(char *fullpath, const char *path)
 
 	fullpath[j] = 0;
 	return strlen(fullpath);
-}
-
-// dir_open(): Opens a directory
-// Param:	char *path - path of directory
-// Return:	directory_t * - pointer to directory handle, NULL on error
-
-directory_t *dir_open(char *path)
-{
-	return NULL;
-}
-
-// dir_close(): Closes a directory
-// Param:	directory_t *directory - pointer to directory handle
-// Return:	Nothing
-
-void dir_close(directory_t *directory)
-{
-	kfree(directory);
-}
-
-// dir_query(): Queries a directory
-// Param:	directory_t *directory - pointer to directory handle
-// Param:	directory_entry_t *entry - pointer to entry to store
-// Return:	int - 0 on success
-
-int dir_query(directory_t *directory, directory_entry_t *entry)
-{
-	return -1;
 }
 
 // open(): Opens a file
@@ -181,7 +170,7 @@ int open(const char *path, int flags, ...)
 	{
 		kprintf("vfs: no available file handles.\n");
 		release_lock(&vfs_mutex);
-		return EIO;
+		return ENOBUFS;
 	}
 
 	// create the file handle
@@ -195,21 +184,173 @@ int open(const char *path, int flags, ...)
 	return handle;
 }
 
+// close(): Closes a file
+// Param:	int handle - file handle
+// Return:	int - status code
+
+int close(int handle)
+{
+	if(files[handle].present != 1)
+		return EBADF;
+
+	acquire_lock(&vfs_mutex);
+	memset(&files[handle], 0, sizeof(file_handle_t));
+	release_lock(&vfs_mutex);
+	return 0;
+}
+
+// read(): Reads a file
+// Param:	int handle - file handle
+// Param:	char *buffer - buffer to read
+// Param:	size_t count - bytes to read
+// Return:	ssize_t - bytes actually read
+
+ssize_t read(int handle, char *buffer, size_t count)
+{
+	if(!count)
+		return 0;
+
+	// handle stdio stuff first
+	if(handle == STDIN)
+		return EIO;		// until I implement keyboard in userspace
+
+	// can't read from the output
+	if(handle == STDOUT || handle == STDERR)
+		return EIO;
+
+	acquire_lock(&vfs_mutex);
+	if(files[handle].present != 1)
+	{
+		release_lock(&vfs_mutex);
+		return EBADF;
+	}
+
+	if(memcmp(files[handle].path, "/dev/", 5) == 0)
+		return devfs_read(handle, buffer, count);
+
+	// for now
+	release_lock(&vfs_mutex);
+	return 0;
+}
+
 // write(): Writes a file
 // Param:	int handle - file handle
 // Param:	char *buffer - buffer to write
-// Param:	int count - bytes to write
-// Return:	int - bytes actually written
+// Param:	size_t count - bytes to write
+// Return:	size_t - bytes actually written
 
-int write(int handle, char *buffer, int count)
+ssize_t write(int handle, char *buffer, size_t count)
 {
+	if(!count)
+		return 0;
+
+	// handle the stdio stuff here to be faster
 	if(handle == STDOUT || handle == STDERR)
 	{
 		tty_write(buffer, count, get_tty());
 		return count;
 	}
 
+	// can't write to the input
+	if(handle == STDIN)
+		return EIO;
+
+	// if we get here, it's probably a real file
+	acquire_lock(&vfs_mutex);
+	if(files[handle].present != 1)
+	{
+		release_lock(&vfs_mutex);
+		return EBADF;
+	}
+
+	if(memcmp(files[handle].path, "/dev/", 5) == 0)
+		return devfs_write(handle, buffer, count);
+
+	// for now
+	release_lock(&vfs_mutex);
 	return 0;
+}
+
+// lseek(): Moves the file pointer
+// Param:	int handle - file handle
+// Param:	off_t position - position of file
+// Param:	int whence - position relativity
+// Return:	int - new position or status code
+
+int lseek(int handle, off_t position, int whence)
+{
+	if(files[handle].present != 1)
+		return EBADF;
+
+	struct stat file_info;
+	int status = fstat(handle, &file_info);
+	if(status != 0)
+		return status;
+
+	acquire_lock(&vfs_mutex);
+
+	// for /dev files
+	if(memcmp(files[handle].path, "/dev/", 5) == 0)
+	{
+		if(whence == SEEK_SET)
+			files[handle].position = position;
+
+		else if(whence == SEEK_CUR)
+			files[handle].position += position;
+
+		else if(whence == SEEK_END)
+			files[handle].position = file_info.st_size - position;
+
+		else
+		{
+			release_lock(&vfs_mutex);
+			return EINVAL;
+		}
+
+		release_lock(&vfs_mutex);
+		return files[handle].position;
+	}
+
+	// for other files
+	if(whence == SEEK_SET)
+	{
+		if(position >= file_info.st_size)
+		{
+			release_lock(&vfs_mutex);
+			return EINVAL;
+		}
+
+		files[handle].position = position;
+		release_lock(&vfs_mutex);
+		return files[handle].position;
+	} else if(whence == SEEK_CUR)
+	{
+		if((files[handle].position + position) >= file_info.st_size)
+		{
+			release_lock(&vfs_mutex);
+			return EINVAL;
+		}
+
+		files[handle].position += position;
+		release_lock(&vfs_mutex);
+		return files[handle].position;
+	} else if(whence == SEEK_END)
+	{
+		if((file_info.st_size - position) >= file_info.st_size)
+		{
+			release_lock(&vfs_mutex);
+			return EINVAL;
+		}
+
+		files[handle].position = file_info.st_size - position;
+		release_lock(&vfs_mutex);
+		return files[handle].position;
+	} else
+	{
+		// undefined whence here
+		release_lock(&vfs_mutex);
+		return EINVAL;
+	}
 }
 
 // stat(): Returns stat information for a file
@@ -224,6 +365,13 @@ int stat(const char *path, struct stat *destination)
 	acquire_lock(&vfs_mutex);
 
 	vfs_resolve_path(full_path, path);
+	if(memcmp(full_path, "/", 2) == 0)
+	{
+		memcpy(destination, &root_stat, sizeof(struct stat));
+		release_lock(&vfs_mutex);
+		return 0;
+	}
+
 	if(memcmp(full_path, "/dev", 5) == 0)
 	{
 		memcpy(destination, &devfs_stat, sizeof(struct stat));
@@ -238,10 +386,46 @@ int stat(const char *path, struct stat *destination)
 		return status;
 	}
 
+	// determine the mountpoint, to call the proper filesystem driver
+	int mountpoint = vfs_determine_mountpoint(full_path);
+	if(mountpoint < 0)
+	{
+		release_lock(&vfs_mutex);
+		return ENOENT;
+	}
+
+	char *tmp_path = kmalloc(1024);
+	strcpy(tmp_path, full_path);
 	release_lock(&vfs_mutex);
-	return ENOENT;		// for now
+
+	if(strcmp(mountpoints[mountpoint].fstype, "ustar") == 0)
+		status = ustar_stat(&mountpoints[mountpoint], tmp_path, destination);
+	else
+	{
+		kprintf("vfs: undefined filesystem type: %s\n", mountpoints[mountpoint].fstype);
+		status = ENOENT;
+	}
+
+	kfree(tmp_path);
+
+	// TO-DO: Non-kernel filesystems will be added here
+	// ext2 and FAT32 are intended for the foreseeable future
+	return status;
 }
 
+// fstat(): Returns stat information for an open file
+// Param:	int handle - file handle
+// Param:	struct stat *destination - stat structure to store
+// Return:	int - status code
+
+int fstat(int handle, struct stat *destination)
+{
+	if(files[handle].present != 1)
+		return EBADF;
+
+	// normal stat()
+	return stat(files[handle].path, destination);
+}
 
 
 
