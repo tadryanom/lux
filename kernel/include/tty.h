@@ -8,7 +8,7 @@
 
 #include <boot.h>
 
-#define TTY_COUNT			6
+#define TTY_COUNT			7
 
 #define rgb(r,g,b)			((r << 16) + (g << 8) + b)
 

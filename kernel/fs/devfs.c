@@ -13,6 +13,9 @@
 #include <time.h>
 #include <blkdev.h>
 #include <rand.h>
+#include <tty.h>
+#include <tasking.h>
+#include <io.h>
 
 // Implementation of /dev filesystem
 devfs_entry_t *devfs_entries;
@@ -36,6 +39,7 @@ void devfs_init()
 	devfs_stat.st_mtime = timestamp;
 	devfs_stat.st_ctime = timestamp;
 
+	// these devices are always here
 	devfs_make_entry("null", S_IFCHR | DEVFS_MODE);
 	devfs_make_entry("zero", S_IFCHR | DEVFS_MODE);
 	devfs_make_entry("stdin", S_IFCHR | DEVFS_MODE);
@@ -44,6 +48,18 @@ void devfs_init()
 	devfs_make_entry("vesafb", S_IFCHR | DEVFS_MODE);
 	devfs_make_entry("random", S_IFCHR | DEVFS_MODE);
 	devfs_make_entry("urandom", S_IFCHR | DEVFS_MODE);
+	devfs_make_entry("port", S_IFCHR | DEVFS_MODE);
+	devfs_make_entry("tty", S_IFCHR | DEVFS_MODE);
+
+	// register tty terminals
+	size_t tty = 0;
+	char tty_name[8];
+	while(tty < TTY_COUNT && tty < 10)
+	{
+		sprintf(tty_name, "tty%d", tty);
+		devfs_make_entry(tty_name, S_IFCHR | DEVFS_MODE);
+		tty++;
+	}
 }
 
 // devfs_make_entry(): Makes an entry in the /dev filesystem
@@ -102,6 +118,9 @@ ssize_t devfs_read(int handle, char *buffer, size_t count)
 	int blkdev_status;
 	uint64_t blkdev_base;
 	size_t random_count = 0;
+	uint8_t *byte;
+	uint16_t *word;
+	uint32_t *dword;
 
 	if(strcmp(files[handle].path, "/dev/vesafb") == 0)
 	{
@@ -138,6 +157,30 @@ ssize_t devfs_read(int handle, char *buffer, size_t count)
 
 		release_lock(&vfs_mutex);
 		return count;
+	} else if(strcmp(files[handle].path, "/dev/port") == 0)
+	{
+		// read from I/O port here
+		if(count == 1)
+		{
+			byte = (uint8_t*)buffer;
+			byte[0] = inb((uint16_t)files[handle].position);
+		} else if(count == 2)
+		{
+			word = (uint16_t*)buffer;
+			word[0] = inw((uint16_t)files[handle].position);
+		} else if(count == 4)
+		{
+			dword = (uint32_t*)buffer;
+			dword[0] = ind((uint16_t)files[handle].position);
+		} else
+		{
+			kprintf("devfs: attempted to read undefined size %d from I/O port 0x%xw\n", count, (uint16_t)files[handle].position);
+			release_lock(&vfs_mutex);
+			return EIO;
+		}
+
+		release_lock(&vfs_mutex);
+		return count;
 	}
 
 	release_lock(&vfs_mutex);
@@ -152,6 +195,10 @@ ssize_t devfs_read(int handle, char *buffer, size_t count)
 
 ssize_t devfs_write(int handle, char *buffer, size_t count)
 {
+	uint8_t *byte;
+	uint16_t *word;
+	uint32_t *dword;
+
 	// handle framebuffer first for graphics performance later on
 	if(strcmp(files[handle].path, "/dev/vesafb") == 0)
 	{
@@ -164,6 +211,40 @@ ssize_t devfs_write(int handle, char *buffer, size_t count)
 	} else if(strcmp(files[handle].path, "/dev/zero") == 0 || strcmp(files[handle].path, "/dev/null") == 0)
 	{
 		// don't do anything, but return success
+		release_lock(&vfs_mutex);
+		return count;
+	} else if(strcmp(files[handle].path, "/dev/tty") == 0)
+	{
+		tty_write(buffer, count, get_tty());
+		release_lock(&vfs_mutex);
+		return count;
+	} else if(memcmp(files[handle].path, "/dev/tty", 8) == 0)
+	{
+		tty_write(buffer, count, (size_t)files[handle].path[8] - 48);
+		release_lock(&vfs_mutex);
+		return count;
+	} else if(strcmp(files[handle].path, "/dev/port") == 0)
+	{
+		// write to I/O ports here!
+		if(count == 1)
+		{
+			byte = (uint8_t*)buffer;
+			outb((uint16_t)files[handle].position, byte[0]);
+		} else if(count == 2)
+		{
+			word = (uint16_t*)buffer;
+			outw((uint16_t)files[handle].position, word[0]);
+		} else if(count == 4)
+		{
+			dword = (uint32_t*)buffer;
+			outd((uint16_t)files[handle].position, dword[0]);
+		} else
+		{
+			kprintf("devfs: attempted to write undefined size %d to I/O port 0x%xw\n", count, (uint16_t)files[handle].position);
+			release_lock(&vfs_mutex);
+			return EIO;
+		}
+
 		release_lock(&vfs_mutex);
 		return count;
 	}

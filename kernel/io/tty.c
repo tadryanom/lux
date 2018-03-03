@@ -20,6 +20,7 @@ size_t back_buffer;
 tty_t *ttys;
 size_t current_tty;
 char lock_flag;
+size_t tty_size;
 
 lock_t tty_mutex = 0;
 
@@ -46,6 +47,7 @@ void screen_init(vbe_mode_t *vbe_info)
 
 	width_chars = (width / 8) - 1;
 	height_chars = (height / 16) - 1;
+	tty_size = width_chars * height_chars * 2;
 
 	screen_size = (size_t)((height*pitch) & 0xFFFFFFFF) & 0xFFFFFFFF;
 	screen_size_dwords = screen_size / 4;
@@ -63,10 +65,21 @@ void screen_init(vbe_mode_t *vbe_info)
 
 	ttys = kcalloc(TTY_COUNT, sizeof(tty_t));
 
-	size_t i = 0;
+	size_t i = 0, j = 0;
+	size_t size = tty_size / 2;
 	while(i < TTY_COUNT)
 	{
 		ttys[i].buffer = kmalloc(width_chars * height_chars * 2);
+		j = 0;
+
+		while(j < size)
+		{
+			ttys[i].buffer[j << 1] = 0;
+			ttys[i].buffer[(j << 1) + 1] = 0x07;
+
+			j++;
+		}
+
 		ttys[i].attribute = 0x07;	// gray on black, default
 		ttys[i].cursor_visible = 1;
 		ttys[i].lock = 0;
@@ -426,7 +439,7 @@ void tty_redraw(size_t tty)
 
 	// now draw character by character
 	size_t i = 0;
-	size_t tty_size = width_chars * height_chars * 2;
+	//size_t tty_size = width_chars * height_chars * 2;
 	while(i < tty_size)
 	{
 		/*if(ttys[tty].buffer[i] == 0)

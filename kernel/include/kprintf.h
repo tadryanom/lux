@@ -12,6 +12,7 @@ char debug_mode;
 
 void kprint_init();
 void kprintf(char *, ...);
+int sprintf(char *, const char *, ...);
 
 void install_exceptions();
 void panic(char *);

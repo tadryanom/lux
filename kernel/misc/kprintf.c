@@ -22,7 +22,7 @@ void com1_wait();
 void com1_send_byte(char);
 void com1_send(char *);
 
-// kprint_init: Initializes the kernel debug messages
+// kprint_init(): Initializes the kernel debug messages
 // Param:	Nothing
 // Return:	Nothing
 
@@ -60,7 +60,7 @@ void kprint_init()
 	com1_send("\n");
 }
 
-// com1_wait: Waits for the serial port to be ready
+// com1_wait(): Waits for the serial port to be ready
 // Param:	Nothing
 // Return:	Nothing
 
@@ -69,7 +69,7 @@ void com1_wait()
 	while((inb(com1_base+5) & 0x20) == 0);
 }
 
-// com1_send_byte: Sends a byte to the serial port
+// com1_send_byte(): Sends a byte to the serial port
 // Param:	char byte - byte to be sent
 // Return:	Nothing
 
@@ -96,7 +96,7 @@ void com1_send_byte(char byte)
 	}
 }
 
-// com1_send: Sends a string through the serial port
+// com1_send(): Sends a string through the serial port
 // Param:	char *string - string to be sent
 // Return:	Nothing
 
@@ -111,7 +111,114 @@ void com1_send(char *string)
 	}
 }
 
-// kprintf: Formats and sends a debug message through the serial port
+// sprintf(): Formats a string
+// Param:	char *dest - destination
+// Param:	const char *string - formatting string
+// Return:	int - size of destination
+
+int sprintf(char *dest, const char *string, ...)
+{
+	char conv_str[32];
+	uint32_t val32;
+	uint64_t val64;
+
+	char *strptr;
+
+	va_list params;
+	va_start(params, string);
+
+	while(string[0] != 0)
+	{
+		if(string[0] == '%' && string[1] == '%')
+		{
+			dest[0] = '%';
+			dest[1] = '%';
+			string += 2;
+			dest += 2;
+			continue;
+		}
+
+		// print character
+		if(string[0] == '%' && string[1] == 'c')
+		{
+			val32 = va_arg(params, uint32_t);
+			dest[0] = (char)val32;
+			string += 2;
+			dest++;
+			continue;
+		}
+
+		// print string
+		if(string[0] == '%' && string[1] == 's')
+		{
+			strptr = va_arg(params, char *);
+			memcpy(dest, strptr, strlen(strptr));
+			string += 2;
+			dest += strlen(strptr);
+			continue;
+		}
+
+		// print decimal
+		if(string[0] == '%' && string[1] == 'd')
+		{
+			val32 = va_arg(params, uint32_t);
+			memcpy(dest, dec_to_string(val32, conv_str), strlen(dec_to_string(val32, conv_str)));
+			string += 2;
+			dest += strlen(dec_to_string(val32, conv_str));
+			continue;
+		}
+
+		// print hex byte
+		if(string[0] == '%' && string[1] == 'x' && string[2] == 'b')
+		{
+			val32 = va_arg(params, uint32_t);
+			memcpy(dest, hex8_to_string((uint8_t)val32, conv_str), strlen(conv_str));
+			string += 3;
+			dest += strlen(conv_str);
+			continue;
+		}
+
+		// print hex word
+		if(string[0] == '%' && string[1] == 'x' && string[2] == 'w')
+		{
+			val32 = va_arg(params, uint32_t);
+			memcpy(dest, hex16_to_string((uint16_t)val32, conv_str), strlen(conv_str));
+			string += 3;
+			dest += strlen(conv_str);
+			continue;
+		}
+
+		// print hex dword
+		if(string[0] == '%' && string[1] == 'x' && string[2] == 'd')
+		{
+			val32 = va_arg(params, uint32_t);
+			memcpy(dest, hex32_to_string(val32, conv_str), strlen(conv_str));
+			string += 3;
+			dest += strlen(conv_str);
+			continue;
+		}
+
+		// print hex qword
+		if(string[0] == '%' && string[1] == 'x' && string[2] == 'q')
+		{
+			val64 = va_arg(params, uint64_t);
+			memcpy(dest, hex64_to_string(val64, conv_str), strlen(conv_str));
+			string += 3;
+			dest += strlen(conv_str);
+			continue;
+		}
+
+		dest[0] = string[0];
+		string++;
+		dest++;
+	}
+
+	dest[0] = 0;
+	va_end(params);
+	return strlen(dest);
+}
+
+// kprintf(): Formats and sends a debug message through the serial port
 // Param:	char *string - formatting string
 // Return:	Nothing
 
@@ -224,6 +331,8 @@ void kprintf(char *string, ...)
 
 	release_lock(&com1_mutex);
 }
+
+
 
 
 
