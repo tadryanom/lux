@@ -251,6 +251,9 @@ idtr:
 public bootfont
 bootfont:			file "kernel/asm_i386/cp437.bin"
 
+public aml_test
+aml_test:			file "kernel/acpi.aml"
+
 section '.bss' align 16
 
 align 16

@@ -28,6 +28,7 @@ lux32:
 
 lux64:
 	rm -f *.o
+	iasl kernel/acpi.asl
 	fasm kernel/asm_i386/vbe.asm vbe.sys
 	fasm kernel/asm_x86_64/bootstrap.asm bootstrap.o
 	fasm kernel/asm_x86_64/io.asm io.o

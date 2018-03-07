@@ -66,6 +66,9 @@ void acpi_init()
 		vmm_unmap((size_t)header, 1);
 		i++;
 	}
+
+	acpi_load_fadt();
+	acpi_create_namespace();
 }
 
 // acpi_checksum(): Verifies checksum of a table
@@ -134,7 +137,7 @@ void *acpi_scan(char *signature, size_t index)
 		i++;
 		if(i >= rsdt_count)
 		{
-			kprintf("acpi: table '%s' index %d doesn't exist.\n", signature, index);
+			//kprintf("acpi: table '%s' index %d doesn't exist.\n", signature, index);
 			return NULL;
 		}
 	}
