@@ -257,11 +257,11 @@ aml_test:			file "kernel/acpi.aml"
 section '.bss' align 16
 
 align 16
-stack_bottom:			rb 16384
+stack_bottom:			times 65536*2 db 0
 stack_top:
 
 align 16
-ap_stack_bottom:		rb 16384
+ap_stack_bottom:		times 16384 db 0
 ap_stack_top:
 
 

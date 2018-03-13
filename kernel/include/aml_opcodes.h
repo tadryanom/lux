@@ -18,7 +18,7 @@
 #define SCOPE_OP			0x10
 #define BUFFER_OP			0x11
 #define PACKAGE_OP			0x12
-#define VAR_PACKAGE_OP			0x13
+#define VARPACKAGE_OP			0x13
 #define METHOD_OP			0x14
 #define DUAL_PREFIX			0x2E
 #define MULTI_PREFIX			0x2F
@@ -40,15 +40,26 @@
 #define ARG5_OP				0x6D
 #define ARG6_OP				0x6E
 #define STORE_OP			0x70
+#define DWORDFIELD_OP			0x8A
+#define WORDFIELD_OP			0x8B
+#define BYTEFIELD_OP			0x8C
+#define BITFIELD_OP			0x8D
+#define QWORDFIELD_OP			0x8F
+#define IF_OP				0xA0
+#define ELSE_OP				0xA1
+#define NOP_OP				0xA3
 #define ONES_OP				0xFF
 
 // Extended opcodes
+#define MUTEX				0x01
+#define ARBFIELD_OP			0x13
 #define OPREGION			0x80
 #define FIELD				0x81
 #define DEVICE				0x82
 #define PROCESSOR			0x83
+#define INDEXFIELD			0x86	// ACPI spec v5.0 section 19.5.60
 
-// OpRegion
+// OpRegion Address Spaces
 #define OPREGION_MEMORY			0x00
 #define OPREGION_IO			0x01
 #define OPREGION_PCI			0x02
@@ -57,7 +68,7 @@
 #define OPREGION_CMOS			0x05
 #define OPREGION_OEM			0x80
 
-// Fields
+// Field Access Type
 #define FIELD_ANY_ACCESS		0x00
 #define FIELD_BYTE_ACCESS		0x01
 #define FIELD_WORD_ACCESS		0x02

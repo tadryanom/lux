@@ -3,10 +3,16 @@ DefinitionBlock("acpi.aml", "DSDT", 1, "TEST!", "", 1)
 {
 	Scope(_SB)
 	{
-		OperationRegion(COM, SystemIO, 0x03F8, One)
-		Field (COM, ByteAcc, NoLock, Preserve)
+		Device(HPET)
 		{
-			COM1, 8
+			Name(_HID, EisaID("PNP0103"))
+			Name(_UID, Zero)
+
+			Name(_CRS, ResourceTemplate()
+			{
+				IRQNoFlags() { 4, 9 }
+				Memory32Fixed (ReadOnly, 0xFE48, 65)
+			})
 		}
 	}
 }

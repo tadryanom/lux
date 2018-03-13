@@ -7,18 +7,31 @@
 #pragma once
 
 #include <types.h>
+#include <lock.h>
 
 #define ACPI_GAS_MMIO			0
 #define ACPI_GAS_IO			1
 #define ACPI_GAS_PCI			2
 
-#define ACPI_MAX_NAMESPACE_ENTRIES	8192
+#define ACPI_MAX_NAMESPACE_ENTRIES	128		// realloc()'d, to save memory
+#define ACPI_MAX_PACKAGE_ENTRIES	256		// Package(), VarPackage() is unlimited
 
-#define ACPI_NAMESPACE_INTEGER		1
+#define ACPI_NAMESPACE_NAME		1
 #define ACPI_NAMESPACE_ALIAS		2
 #define ACPI_NAMESPACE_SCOPE		3
 #define ACPI_NAMESPACE_FIELD		4
 #define ACPI_NAMESPACE_METHOD		5
+#define ACPI_NAMESPACE_DEVICE		6
+#define ACPI_NAMESPACE_INDEXFIELD	7
+#define ACPI_NAMESPACE_MUTEX		8
+#define ACPI_NAMESPACE_PROCESSOR	9
+#define ACPI_NAMESPACE_BUFFER_FIELD	10
+
+#define ACPI_INTEGER			1
+#define ACPI_STRING			2
+#define ACPI_PACKAGE			3
+#define ACPI_BUFFER			4
+#define ACPI_NAME			5
 
 typedef struct acpi_rsdp_t
 {
@@ -131,15 +144,30 @@ typedef struct acpi_aml_t		// AML tables, DSDT and SSDT
 	uint8_t data[];
 }__attribute__((packed)) acpi_aml_t;
 
+typedef struct acpi_object_t
+{
+	int type;
+	uint64_t integer;		// for Name()
+	char *string;			// for Name()
+
+	int package_size;		// for Package(), size in entries
+	struct acpi_object_t *package;	// for Package(), actual entries
+
+	size_t buffer_size;		// for Buffer(), size in bytes
+	void *buffer;			// for Buffer(), actual bytes
+
+	char name[512];			// for Name References
+} acpi_object_t;
+
 typedef struct acpi_handle_t
 {
 	char path[512];			// full path of object
 	int type;
 	void *pointer;			// valid for scopes, methods, etc.
 	size_t size;			// valid for scopes, methods, etc.
-	uint64_t integer;		// valid for Name() only
 
-	char alias[16];			// valid for Alias() only
+	char alias[512];		// for Alias() only
+	acpi_object_t object;		// for Name()
 
 	uint8_t op_address_space;	// for OpRegions only
 	uint64_t op_base;		// for OpRegions only
@@ -151,6 +179,20 @@ typedef struct acpi_handle_t
 	char field_opregion[512];	// for Fields only
 
 	uint8_t method_flags;		// for Methods only, includes ARG_COUNT in lowest three bits
+
+	uint64_t indexfield_offset;	// for IndexFields, in bits
+	char indexfield_index[512];	// for IndexFields
+	char indexfield_data[512];	// for IndexFields
+	uint8_t indexfield_flags;	// for IndexFields
+	uint8_t indexfield_size;	// for IndexFields
+
+	lock_t mutex;			// for Mutex
+
+	uint8_t cpu_id;			// for Processor
+
+	char buffer[512];		// for Buffer field
+	uint64_t buffer_offset;		// for Buffer field, in bits
+	uint64_t buffer_size;		// for Buffer field, in bits
 } acpi_handle_t;
 
 acpi_fadt_t *fadt;
@@ -165,16 +207,23 @@ void acpi_load_fadt();
 
 // ACPI namespace functions
 void acpi_create_namespace();
-int aml_is_name(char);
-size_t aml_eval_integer(uint8_t *, uint64_t *);
-size_t aml_parse_pkgsize(uint8_t *, size_t *);
-void aml_register_scope(uint8_t *, size_t);
-size_t aml_create_scope(void *);
-size_t aml_create_opregion(void *);
-size_t aml_create_field(void *);
-size_t aml_create_method(void *);
-size_t aml_create_device(void *);
-acpi_handle_t *aml_resolve(char *);
+int acpins_is_name(char);
+size_t acpins_eval_integer(uint8_t *, uint64_t *);
+size_t acpins_parse_pkgsize(uint8_t *, size_t *);
+void acpins_register_scope(uint8_t *, size_t);
+size_t acpins_create_scope(void *);
+size_t acpins_create_opregion(void *);
+size_t acpins_create_field(void *);
+size_t acpins_create_method(void *);
+size_t acpins_create_device(void *);
+size_t acpins_create_name(void *);
+size_t acpins_create_alias(void *);
+size_t acpins_create_mutex(void *);
+size_t acpins_create_indexfield(void *);
+size_t acpins_create_package(acpi_object_t *, void *);
+size_t acpins_create_processor(void *);
+size_t acpins_create_wordfield(void *);
+acpi_handle_t *acpins_resolve(char *);
 
 
 

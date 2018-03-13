@@ -130,6 +130,8 @@ void kmain(uint32_t multiboot_magic, multiboot_info_t *multiboot_info, vbe_mode_
 	kprintf(")\n");
 	kprintf("  file size: %d\n", stat_info.st_size);
 
+	kprintf("Boot finished, %d MB used, %d MB free\n", used_pages/256, (total_pages-used_pages) / 256);
+
 	while(1)
 		asm volatile ("sti\nhlt");
 }

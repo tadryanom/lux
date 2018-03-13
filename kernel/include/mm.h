@@ -43,6 +43,7 @@
 
 extern uint64_t total_memory, usable_memory;
 extern uint8_t *pmm_bitmap;
+extern size_t total_pages, used_pages, reserved_pages;
 
 // Generic Functions
 void *kmalloc(size_t);

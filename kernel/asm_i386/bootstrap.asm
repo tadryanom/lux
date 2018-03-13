@@ -313,12 +313,12 @@ bootfont:			file "kernel/asm_i386/cp437.bin"
 section '.bss' align 16
 
 align 16
-stack_bottom:			rb 8192
+stack_bottom:			times 32768 db 0
 stack_top:
 
 ; Temporary stack for APs
 align 16
-ap_stack_bottom:		rb 8192
+ap_stack_bottom:		times 8192 db 0
 ap_stack_top:
 
 

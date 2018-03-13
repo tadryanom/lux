@@ -266,10 +266,7 @@ size_t pmm_alloc(size_t count)
 
 	size_t memory = pmm_find_range(count);
 	if(!memory)
-	{
-		release_lock(&pmm_mutex);
-		return NULL;
-	}
+		panic("Out of memory.");
 
 	pmm_mark_used(memory, count);
 	release_lock(&pmm_mutex);

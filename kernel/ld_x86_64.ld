@@ -6,19 +6,19 @@ SECTIONS
 	. = 0x10000200000;
 	.startup : {
 		*(.startup)
-		. = ALIGN(8);
+		. = ALIGN(16);
 	}
 	.text : {
 		*(.text)
-		. = ALIGN(8);
+		. = ALIGN(16);
 	}
 	.data : {
 		*(.data)
-		. = ALIGN(8);
+		. = ALIGN(16);
 	}
 	.rodata : {
 		*(.rodata)
-		. = ALIGN(8);
+		. = ALIGN(16);
 	}
 	.bss : {
 		*(COMMON)

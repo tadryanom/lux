@@ -7,11 +7,11 @@
 #include <acpi.h>
 #include <aml_opcodes.h>
 
-// aml_is_name(): Evaluates a name character
+// acpins_is_name(): Evaluates a name character
 // Param:	char character - character from name
 // Return:	int - 1 if it's a name, 0 if it's not
 
-inline int aml_is_name(char character)
+inline int acpins_is_name(char character)
 {
 	if((character >= '0' && character <= 'Z') || character == '_')
 		return 1;
@@ -20,12 +20,12 @@ inline int aml_is_name(char character)
 		return 0;
 }
 
-// aml_eval_integer(): Evaluates an integer object
+// acpins_eval_integer(): Evaluates an integer object
 // Param:	uint8_t *object - pointer to object
 // Param:	uint64_t *integer - destination
 // Return:	size_t - size of object in bytes, 0 if it's not an integer
 
-size_t aml_eval_integer(uint8_t *object, uint64_t *integer)
+size_t acpins_eval_integer(uint8_t *object, uint64_t *integer)
 {
 	uint8_t *byte = (uint8_t*)(object + 1);
 	uint16_t *word = (uint16_t*)(object + 1);
@@ -60,12 +60,12 @@ size_t aml_eval_integer(uint8_t *object, uint64_t *integer)
 	}
 }
 
-// aml_parse_pkgsize(): Parses package size
+// acpins_parse_pkgsize(): Parses package size
 // Param:	uint8_t *data - pointer to package size data
 // Param:	size_t *destination - destination to store package size
 // Return:	size_t - size of package size encoding
 
-size_t aml_parse_pkgsize(uint8_t *data, size_t *destination)
+size_t acpins_parse_pkgsize(uint8_t *data, size_t *destination)
 {
 	destination[0] = 0;
 
